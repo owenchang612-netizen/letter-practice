@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>超人力霸王 獎勵集卡系統</title>
+<style>
+:root{
+  --bd:#0A2472;--bm:#1565C0;--bl:#42A5F5;
+  --rd:#7B1010;--rm:#C62828;
+  --gd:#1B5E20;--gm:#2E7D32;--gl:#66BB6A;
+  --gold:#F9A825;--gold2:#FFD54F;
+  --bg:#0A2244;--card:#112355;
+  --tx:#FFF;--txs:rgba(255,255,255,.6);--r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans TC','Nunito',sans-serif;background:#0A2244;color:#FFFFFF;min-height:100vh;}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 20% 20%,rgba(100,160,255,.2) 0,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(46,125,50,.12) 0,transparent 50%);}
+.app{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:.75rem;display:flex;flex-direction:column;gap:.75rem;}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:.875rem 1rem;
+  background:linear-gradient(135deg,rgba(21,101,192,.35),rgba(10,36,114,.5));
+  border:1px solid rgba(66,165,245,.25);border-radius:var(--r);backdrop-filter:blur(12px);}
+.hdr-t{font-size:15px;font-weight:900;letter-spacing:.03em;}
+.hdr-s{font-size:10px;color:var(--txs);margin-top:2px;font-weight:700;}
+.srow{display:flex;gap:5px;}
+.sp{width:26px;height:26px;border-radius:50%;border:1.5px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:14px;}
+.sp.on{background:rgba(249,168,37,.2);border-color:var(--gold);}
+.sp.pop{animation:sPop .45s cubic-bezier(.34,1.56,.64,1);}
+@keyframes sPop{0%{transform:scale(.2) rotate(-30deg);}65%{transform:scale(1.5) rotate(10deg);}100%{transform:scale(1);}}
+.lgd{display:flex;gap:10px;padding:.5rem .75rem;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid rgba(255,255,255,.08);}
+.li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--txs);font-weight:700;}
+.ld{width:10px;height:10px;border-radius:3px;}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.stat{padding:.75rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:var(--r);text-align:center;}
+.sv{font-size:24px;font-weight:900;line-height:1;}
+.sl{font-size:10px;color:var(--txs);margin-top:3px;font-weight:700;text-transform:uppercase;}
+.prog{padding:.75rem 1rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:var(--r);}
+.pr{display:flex;justify-content:space-between;margin-bottom:7px;}
+.pt{font-size:13px;font-weight:800;}
+.pv{font-size:11px;color:var(--txs);font-weight:700;}
+.bar{height:8px;background:rgba(255,255,255,.1);border-radius:8px;overflow:hidden;margin-bottom:4px;}
+.bf{height:100%;border-radius:8px;transition:width .6s cubic-bezier(.34,1.56,.64,1);}
+.bgold{background:linear-gradient(90deg,var(--gold),var(--gold2));}
+.bblue{background:linear-gradient(90deg,var(--bm),var(--bl));}
+.ph{font-size:10px;color:var(--txs);font-weight:700;}
+.btns{display:flex;gap:8px;}
+.btn{flex:1;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.15);
+  font-size:13px;font-weight:800;cursor:pointer;color:var(--tx);
+  display:flex;align-items:center;justify-content:center;gap:5px;transition:all .18s;font-family:inherit;}
+.btn:active{transform:scale(.97);}
+.btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none;}
+.bpr{background:rgba(255,255,255,.08);}.bpr:hover{background:rgba(255,255,255,.14);}
+.bum{background:linear-gradient(135deg,var(--bd),var(--bm));border-color:var(--bl);box-shadow:0 4px 16px rgba(21,101,192,.4);}
+.bmo{background:linear-gradient(135deg,var(--rd),var(--rm));border-color:#EF5350;box-shadow:0 4px 14px rgba(198,40,40,.35);}
+.tabs{display:flex;background:rgba(255,255,255,.06);border-radius:10px;padding:3px;border:1px solid rgba(255,255,255,.08);}
+.tab{flex:1;height:32px;border-radius:8px;border:none;background:transparent;font-size:12px;font-weight:800;color:var(--txs);cursor:pointer;transition:all .18s;font-family:inherit;}
+.tab.on{background:rgba(255,255,255,.12);color:var(--tx);}
+.panel{display:none;}.panel.on{display:block;}
+.card-shell{position:relative;border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .2s cubic-bezier(.34,1.56,.64,1);}
+.card-shell:hover{transform:scale(1.06) translateY(-3px);}
+.card-shell.tum{box-shadow:0 0 0 2.5px #C8A951,0 0 12px rgba(200,169,81,.5);}
+.card-shell.tmo{box-shadow:0 0 0 2.5px #B22222,0 0 12px rgba(178,34,34,.5);}
+.card-shell.tal{box-shadow:0 0 0 2.5px #228B22,0 0 12px rgba(34,139,34,.5);}
+.card-face{width:100%;padding-bottom:140%;position:relative;overflow:hidden;background:var(--card);}
+.card-face::after{content:'';position:absolute;inset:0;z-index:4;pointer-events:none;
+  background:linear-gradient(125deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.08) 50%,rgba(255,255,255,0) 100%);
+  animation:holo 4s linear infinite;}
+@keyframes holo{0%,100%{opacity:.5}50%{opacity:1}}
+.card-header{position:absolute;top:0;left:0;right:0;z-index:2;padding:5px 6px 4px;display:flex;align-items:center;justify-content:space-between;}
+.tum .card-header{background:linear-gradient(90deg,rgba(200,169,81,.9),rgba(240,210,100,.7),rgba(200,169,81,.9));}
+.tmo .card-header{background:linear-gradient(90deg,rgba(178,34,34,.9),rgba(220,60,60,.7),rgba(178,34,34,.9));}
+.tal .card-header{background:linear-gradient(90deg,rgba(34,139,34,.9),rgba(60,180,60,.7),rgba(34,139,34,.9));}
+.card-type-lbl{font-size:8px;font-weight:900;color:#fff;letter-spacing:.1em;}
+.card-num{font-size:8px;font-weight:700;color:rgba(255,255,255,.8);}
+.card-art{position:absolute;top:24px;left:0;right:0;bottom:32px;z-index:1;
+  display:flex;align-items:center;justify-content:center;font-size:52px;line-height:1;}
+.card-art img{width:80%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.8));}
+.card-footer{position:absolute;bottom:0;left:0;right:0;z-index:2;padding:4px 6px 5px;text-align:center;}
+.tum .card-footer{background:linear-gradient(0deg,rgba(200,169,81,.95),rgba(200,169,81,.6));}
+.tmo .card-footer{background:linear-gradient(0deg,rgba(178,34,34,.95),rgba(178,34,34,.6));}
+.tal .card-footer{background:linear-gradient(0deg,rgba(34,139,34,.95),rgba(34,139,34,.6));}
+.card-name{font-size:9px;font-weight:900;color:#fff;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dup-badge{position:absolute;top:5px;right:5px;z-index:6;background:rgba(0,0,0,.75);border-radius:99px;font-size:9px;font-weight:800;padding:1px 5px;color:var(--gold);}
+.cgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px;}
+.empty{text-align:center;padding:2rem 1rem;color:var(--txs);font-size:13px;font-weight:700;}
+.rh{font-size:11px;color:var(--txs);padding:.5rem 0;text-align:center;font-weight:700;}
+.card-locked{border-radius:10px;aspect-ratio:5/7;background:rgba(255,255,255,.04);
+  border:1.5px dashed rgba(255,255,255,.15);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;}
+.card-locked-icon{font-size:28px;opacity:.25;}
+.card-locked-num{font-size:9px;font-weight:700;color:rgba(255,255,255,.2);}
+.card-add{border-radius:10px;aspect-ratio:5/7;background:rgba(255,255,255,.03);
+  border:1.5px dashed rgba(255,255,255,.1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;}
+.card-add-icon{font-size:24px;opacity:.25;}
+.card-add-lbl{font-size:9px;font-weight:700;color:rgba(255,255,255,.2);}
+.modal{min-height:460px;background:rgba(0,0,0,.88);border-radius:var(--r);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:.875rem;padding:1.25rem;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(16px);}
+.modal.show{display:flex;}
+.mttl{font-size:16px;font-weight:900;text-align:center;letter-spacing:.04em;}
+.msub{font-size:11px;color:rgba(255,255,255,.5);text-align:center;font-weight:700;}
+.prow{display:flex;gap:10px;align-items:flex-end;justify-content:center;flex-wrap:wrap;}
+.pack-wrap{cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:transform .22s cubic-bezier(.34,1.56,.64,1);}
+.pack-wrap:hover .pack-body{transform:translateY(-8px) rotate(-1.5deg);}
+.pack-wrap.sel .pack-body{transform:translateY(-14px) scale(1.08);}
+.pack-wrap.sel.um .pack-body{box-shadow:0 12px 32px rgba(200,169,81,.7);}
+.pack-wrap.sel.mo .pack-body{box-shadow:0 12px 32px rgba(220,60,60,.7);}
+.pack-wrap.sel.al .pack-body{box-shadow:0 12px 32px rgba(60,180,60,.7);}
+.pack-body{width:192px;height:288px;border-radius:16px;position:relative;overflow:hidden;background:#111;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1),box-shadow .25s;}
+.pack-num-lbl{font-size:11px;color:rgba(255,255,255,.65);font-weight:800;}
+.tear-scene{position:relative;width:420px;height:630px;}
+.t-top{position:absolute;top:0;left:0;right:0;height:38%;border-radius:8px 8px 0 0;overflow:hidden;background:#111;
+  transform-origin:top center;animation:tTear .8s cubic-bezier(.34,1.56,.64,1) forwards;}
+.t-bot{position:absolute;bottom:0;left:0;right:0;height:68%;border-radius:0 0 8px 8px;overflow:hidden;background:#111;}
+@keyframes tTear{0%{transform:rotate(0) translateY(0);}35%{transform:rotate(-22deg) translateY(-6px);}70%{transform:rotate(-50deg) translateY(-24px) translateX(-20px);opacity:.7;}100%{transform:rotate(-68deg) translateY(-60px) translateX(-30px);opacity:0;}}
+.spark{position:absolute;font-size:16px;animation:spF .9s ease-out forwards;pointer-events:none;}
+@keyframes spF{0%{opacity:1;transform:scale(.4);}100%{opacity:0;transform:scale(1.6) translate(var(--dx),var(--dy));}}
+.rv-wrap{width:480px;height:672px;}
+.rv-wrap .card-shell{width:100%;height:100%;}
+.rv-wrap .card-shell .card-face{padding-bottom:0;height:100%;}
+.rv-wrap .card-shell{animation:crv .6s cubic-bezier(.34,1.56,.64,1);}
+@keyframes crv{0%{transform:perspective(600px) rotateY(90deg) scale(.5);opacity:0;}60%{transform:perspective(600px) rotateY(-8deg) scale(1.05);}100%{transform:perspective(600px) rotateY(0) scale(1);opacity:1;}}
+.rv-note{font-size:10px;color:rgba(255,255,255,.5);text-align:center;line-height:1.4;padding:0 4px;font-weight:700;max-width:200px;}
+.mbtn{padding:.6rem 1.75rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  border-radius:10px;font-size:13px;cursor:pointer;color:#fff;font-weight:800;transition:all .15s;font-family:inherit;}
+.mbtn:hover{background:rgba(255,255,255,.18);}
+.zoom-bg{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:500;display:none;
+  align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+.zoom-bg.show{display:flex;}
+.zoom-card{width:min(92vw,380px);aspect-ratio:5/7;animation:zoomIn .4s cubic-bezier(.34,1.56,.64,1);}
+.zoom-card .card-shell,.zoom-card .card-face{width:100%;height:100%;}
+.zoom-card .card-shell .card-face{padding-bottom:0;}
+.zoom-card .card-face .card-art{font-size:clamp(60px,20vw,110px);}
+.zoom-card .card-face .card-art img{width:85%;}
+.zoom-card .card-name{font-size:clamp(11px,3.5vw,16px);}
+@keyframes zoomIn{0%{transform:scale(.4) rotate(-5deg);opacity:0;}70%{transform:scale(1.05) rotate(1deg);}100%{transform:scale(1) rotate(0);opacity:1;}}
+.zoom-close{position:absolute;top:20px;right:20px;width:36px;height:36px;border-radius:50%;
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+  color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:rgba(30,33,64,.96);border:1px solid rgba(255,255,255,.15);border-radius:12px;
+  padding:10px 20px;font-size:13px;font-weight:700;color:#fff;
+  box-shadow:0 6px 24px rgba(0,0,0,.5);transition:transform .3s cubic-bezier(.34,1.56,.64,1);z-index:999;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.slbl{font-size:10px;font-weight:800;color:var(--txs);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+/* ── 家長密碼 ── */
+.pc-ov{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;
+  display:none;align-items:center;justify-content:center;backdrop-filter:blur(10px);}
+.pc-box{background:#1E2140;border:1.5px solid rgba(255,255,255,.25);border-radius:20px;
+  padding:1.75rem 1.5rem;width:min(320px,88vw);text-align:center;}
+.pc-dot{width:15px;height:15px;border-radius:50%;border:2px solid rgba(255,255,255,.3);
+  background:transparent;transition:all .2s;display:inline-block;margin:0 5px;}
+.pc-dot.on{background:#F9A825;border-color:#F9A825;box-shadow:0 0 8px rgba(249,168,37,.5);}
+.pc-key{height:54px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.09);color:#fff;font-size:22px;font-weight:700;
+  cursor:pointer;transition:all .15s;font-family:inherit;width:100%;}
+.pc-key:hover{background:rgba(255,255,255,.18);}
+.pc-key:active{transform:scale(.93);}
+.pc-del{background:rgba(229,57,53,.2);border-color:rgba(229,57,53,.35);color:#EF5350;}
+@keyframes pcShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="hdr">
+  <div><div class="hdr-t">🏆 超人力霸王集卡系統</div><div class="hdr-s">⭐×3 抽力霸王 ｜ 力霸王×3 換怪獸/異星人卡</div></div>
+  <div class="srow"><div class="sp" id="s0">☆</div><div class="sp" id="s1">☆</div><div class="sp" id="s2">☆</div></div>
+</div>
+
+<div class="lgd">
+  <div class="li"><div class="ld" style="background:#C8A951"></div>力霸王（金框）</div>
+  <div class="li"><div class="ld" style="background:#B22222"></div>怪獸（紅框）</div>
+  <div class="li"><div class="ld" style="background:#228B22"></div>異星人（綠框）</div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="sv" id="stUm">0</div><div class="sl">已收集力霸王</div></div>
+  <div class="stat"><div class="sv" id="stMo">0</div><div class="sl">怪獸/異星人卡</div></div>
+</div>
+
+<div class="prog">
+  <div class="pr"><div class="pt">⭐ 星星進度</div><div class="pv" id="sv2">0 / 3</div></div>
+  <div class="bar"><div class="bf bgold" id="sb2" style="width:0%"></div></div>
+  <div class="ph">集滿 3 顆 → 按「抽力霸王」選卡包</div>
+</div>
+<div class="prog">
+  <div class="pr"><div class="pt">🦸 力霸王進度</div><div class="pv" id="uv2">0 / 3</div></div>
+  <div class="bar"><div class="bf bblue" id="ub2" style="width:0%"></div></div>
+  <div class="ph">集滿 3 張 → 換怪獸或異星人卡（力霸王消耗）</div>
+</div>
+
+<div class="btns">
+  <button class="btn bpr" onclick="rewardEarnStar()">✏️ 完成練習 +⭐</button>
+</div>
+<div class="btns">
+  <button class="btn bum" id="bUm" onclick="openPacks('um')">🦸 抽力霸王</button>
+</div>
+<div class="btns">
+  <button class="btn bmo" id="bMo" onclick="openPacks('mo')">👾 換怪獸/異星人卡</button>
+</div>
+
+<div class="modal" id="modal">
+  <div id="phSel" style="display:flex;flex-direction:column;align-items:center;gap:.875rem;width:100%">
+    <div class="mttl" id="selT">選一個神秘卡包！</div>
+    <div class="msub" id="selS">五個卡包各藏一張不同的卡</div>
+    <div class="prow" id="prow"></div>
+    <div class="msub">點選你喜歡的卡包</div>
+  </div>
+  <div id="phTear" style="display:none;flex-direction:column;align-items:center;gap:.75rem">
+    <div class="mttl">撕開卡包…</div>
+    <div class="tear-scene" id="tearScene"></div>
+  </div>
+  <div id="phRv" style="display:none;flex-direction:column;align-items:center;gap:.875rem">
+    <div class="mttl" id="rvT">🎉 獲得！</div>
+    <div class="rv-wrap" id="rvWrap"></div>
+    <div class="rv-note" id="rvNote"></div>
+    <button class="mbtn" onclick="commit()">放入收集冊 →</button>
+  </div>
+</div>
+
+<div>
+  <div class="slbl">收集冊 <span style="font-size:10px;color:var(--txs);font-weight:600;">（點卡片放大查看）</span></div>
+  <div class="tabs">
+    <button class="tab on" onclick="switchTab('um')">🦸 力霸王 (<span id="cUm">0</span>/<span id="tUm">0</span>)</button>
+    <button class="tab" onclick="switchTab('mo')">👾 怪獸/異星人 (<span id="cMo">0</span>/<span id="tMo">0</span>)</button>
+  </div>
+  <div class="panel on" id="panUm">
+    <div class="cgrid" id="gUm" style="display:none"></div>
+    <div class="empty" id="eUm">還沒有力霸王，先去練習獲得星星！</div>
+  </div>
+  <div class="panel" id="panMo">
+    <div class="cgrid" id="gMo" style="display:none"></div>
+    <div class="empty" id="eMo">集滿 3 張力霸王後可換取！</div>
+  </div>
+</div>
+
+</div><!-- .app -->
+
+<!-- 縮放查看 -->
+<div class="zoom-bg" id="zoomBg">
+  <div class="zoom-card" id="zoomCard"></div>
+  <div class="zoom-close" onclick="closeZoom()">✕</div>
+</div>
+
+<!-- 家長密碼 -->
+<div class="pc-ov" id="pcOv">
+  <div class="pc-box" id="pcBox">
+    <div style="font-size:44px;margin-bottom:.5rem">🔐</div>
+    <div style="font-size:17px;font-weight:900;color:#fff;margin-bottom:6px">家長密碼</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.45);font-weight:700;margin-bottom:1.25rem;line-height:1.6">請輸入6位數密碼<br>確認給予孩子星星獎勵 ⭐</div>
+    <div style="display:flex;justify-content:center;margin-bottom:1.25rem;">
+      <div class="pc-dot" id="pcd0"></div><div class="pc-dot" id="pcd1"></div>
+      <div class="pc-dot" id="pcd2"></div><div class="pc-dot" id="pcd3"></div>
+      <div class="pc-dot" id="pcd4"></div><div class="pc-dot" id="pcd5"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:.875rem;">
+      <button class="pc-key" onclick="pcKey('1')">1</button>
+      <button class="pc-key" onclick="pcKey('2')">2</button>
+      <button class="pc-key" onclick="pcKey('3')">3</button>
+      <button class="pc-key" onclick="pcKey('4')">4</button>
+      <button class="pc-key" onclick="pcKey('5')">5</button>
+      <button class="pc-key" onclick="pcKey('6')">6</button>
+      <button class="pc-key" onclick="pcKey('7')">7</button>
+      <button class="pc-key" onclick="pcKey('8')">8</button>
+      <button class="pc-key" onclick="pcKey('9')">9</button>
+      <button class="pc-key pc-del" onclick="pcKey('⌫')">⌫</button>
+      <button class="pc-key" onclick="pcKey('0')">0</button>
+      <button class="pc-key pc-del" onclick="pcKey('✕')">✕</button>
+    </div>
+    <div id="pcErr" style="font-size:12px;color:#EF5350;font-weight:700;min-height:18px;margin-bottom:.75rem;"></div>
+    <button onclick="pcClose()" style="padding:.4rem 1.5rem;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;font-family:inherit;">取消</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const UM=[
+  {id:"um01",name:"80奧特曼",img:"assets/Ultraman/80.PNG",e:"🔵"},
+  {id:"um02",name:"Ace",img:"assets/Ultraman/Ace.PNG",e:"🌟"},
+  {id:"um03",name:"Great",img:"assets/Ultraman/Great.PNG",e:"💫"},
+  {id:"um04",name:"Jack",img:"assets/Ultraman/Jack.PNG",e:"⚡"},
+  {id:"um05",name:"Justice",img:"assets/Ultraman/Justice.PNG",e:"⚖️"},
+  {id:"um06",name:"Legend",img:"assets/Ultraman/Legend.PNG",e:"👑"},
+  {id:"um07",name:"Neos",img:"assets/Ultraman/Neos.PNG",e:"🌙"},
+  {id:"um08",name:"Nexus",img:"assets/Ultraman/Nexus.PNG",e:"🔮"},
+  {id:"um09",name:"Nice",img:"assets/Ultraman/Nice.PNG",e:"✨"},
+  {id:"um10",name:"Orb",img:"assets/Ultraman/Orb.PNG",e:"🌀"},
+  {id:"um11",name:"Powered",img:"assets/Ultraman/Powered.PNG",e:"💪"},
+  {id:"um12",name:"Saga",img:"assets/Ultraman/Saga.PNG",e:"📖"},
+  {id:"um13",name:"Seven 21",img:"assets/Ultraman/Seven 21.PNG",e:"7️⃣"},
+  {id:"um14",name:"Seven",img:"assets/Ultraman/Seven.PNG",e:"⭐"},
+  {id:"um15",name:"X 哥摩拉裝甲",img:"assets/Ultraman/X 哥摩拉裝甲.PNG",e:"🦖"},
+  {id:"um16",name:"X 貝塔&混合裝甲",img:"assets/Ultraman/X 貝塔&混合裝甲.PNG",e:"⚡"},
+  {id:"um17",name:"X 電子裝甲",img:"assets/Ultraman/X 電子裝甲.PNG",e:"🔌"},
+  {id:"um18",name:"X",img:"assets/Ultraman/X.PNG",e:"❌"},
+  {id:"um19",name:"Zearth",img:"assets/Ultraman/Zearth.PNG",e:"🌍"},
+  {id:"um20",name:"Zeno",img:"assets/Ultraman/Zeno.PNG",e:"🔥"},
+  {id:"um21",name:"Zero 終極光輝",img:"assets/Ultraman/Zero 終極光輝型態.PNG",e:"☀️"},
+  {id:"um22",name:"Zero 終極閃耀",img:"assets/Ultraman/Zero 終極閃耀型態.PNG",e:"💥"},
+  {id:"um23",name:"Zero",img:"assets/Ultraman/Zero.PNG",e:"0️⃣"},
+  {id:"um24",name:"Zoffy",img:"assets/Ultraman/Zoffy.PNG",e:"🛸"},
+  {id:"um25",name:"令河",img:"assets/Ultraman/令河.PNG",e:"🌊"},
+  {id:"um26",name:"傑特 Beta",img:"assets/Ultraman/傑特 Beta衝擊型態.PNG",e:"⚡"},
+  {id:"um27",name:"傑特 Delta",img:"assets/Ultraman/傑特 Delta堀爪.PNG",e:"🔷"},
+  {id:"um28",name:"傑特 Gamma",img:"assets/Ultraman/傑特 Gamma型態.PNG",e:"🔹"},
+  {id:"um29",name:"傑特",img:"assets/Ultraman/傑特.PNG",e:"🦸"},
+  {id:"um30",name:"初代",img:"assets/Ultraman/初代.PNG",e:"🏆"},
+  {id:"um31",name:"利布特",img:"assets/Ultraman/利布特.PNG",e:"🟣"},
+  {id:"um32",name:"力霸王之母",img:"assets/Ultraman/力霸王之母.PNG",e:"👩"},
+  {id:"um33",name:"力霸王之父",img:"assets/Ultraman/力霸王之父.PNG",e:"👨"},
+  {id:"um34",name:"勝利",img:"assets/Ultraman/勝利.PNG",e:"🏅"},
+  {id:"um35",name:"博伊",img:"assets/Ultraman/博伊.PNG",e:"🧒"},
+  {id:"um36",name:"喬尼亞斯",img:"assets/Ultraman/喬尼亞斯.PNG",e:"🌟"},
+  {id:"um37",name:"大河 光子型態",img:"assets/Ultraman/大河 地球光子型態.PNG",e:"⚛️"},
+  {id:"um38",name:"大河 閃焰型態",img:"assets/Ultraman/大河 閃焰型態.PNG",e:"🔥"},
+  {id:"um39",name:"大河",img:"assets/Ultraman/大河.PNG",e:"🌸"},
+  {id:"um40",name:"太郎",img:"assets/Ultraman/太郎.PNG",e:"🌠"},
+  {id:"um41",name:"奧美加 加米頓裝甲",img:"assets/Ultraman/奧美加 加米頓裝甲.PNG",e:"🛡️"},
+  {id:"um42",name:"奧美加 特萊加隆裝甲",img:"assets/Ultraman/奧美加 特萊加隆裝甲.PNG",e:"🦕"},
+  {id:"um43",name:"奧美加 瓦爾基涅斯裝甲",img:"assets/Ultraman/奧美加 瓦爾基涅斯裝甲.PNG",e:"🦅"},
+  {id:"um44",name:"奧美加 雷基尼斯裝甲",img:"assets/Ultraman/奧美加 雷基尼斯裝甲.PNG",e:"🌟"},
+  {id:"um45",name:"奧美加",img:"assets/Ultraman/奧美加.PNG",e:"🔯"},
+  {id:"um46",name:"尊王",img:"assets/Ultraman/尊王.PNG",e:"👸"},
+  {id:"um47",name:"尤利安",img:"assets/Ultraman/尤利安.PNG",e:"🌙"},
+  {id:"um48",name:"布雷薩 法多蘭裝甲",img:"assets/Ultraman/布雷薩 法多蘭裝甲.PNG",e:"💨"},
+  {id:"um49",name:"布雷薩",img:"assets/Ultraman/布雷薩.PNG",e:"💨"},
+  {id:"um50",name:"布魯",img:"assets/Ultraman/布魯.PNG",e:"💙"},
+  {id:"um51",name:"希卡利",img:"assets/Ultraman/希卡利.PNG",e:"🔆"},
+  {id:"um52",name:"帝納斯",img:"assets/Ultraman/帝納斯.PNG",e:"🟡"},
+  {id:"um53",name:"德卡 奇蹟型",img:"assets/Ultraman/德卡 奇蹟型.PNG",e:"✨"},
+  {id:"um54",name:"德卡 強勁型",img:"assets/Ultraman/德卡 強勁型.PNG",e:"💪"},
+  {id:"um55",name:"德卡 強壯型",img:"assets/Ultraman/德卡 強壯型.PNG",e:"🏋️"},
+  {id:"um56",name:"德卡",img:"assets/Ultraman/德卡.PNG",e:"🦸‍♂️"},
+  {id:"um57",name:"悠里",img:"assets/Ultraman/悠里.PNG",e:"🌺"},
+  {id:"um58",name:"戴拿",img:"assets/Ultraman/戴拿.PNG",e:"⚡"},
+  {id:"um59",name:"捷德 尊皇型態",img:"assets/Ultraman/捷德 尊皇型態.PNG",e:"👑"},
+  {id:"um60",name:"捷德 機敏型態",img:"assets/Ultraman/捷德 機敏型態.PNG",e:"🐆"},
+  {id:"um61",name:"捷德 究極型態",img:"assets/Ultraman/捷德 究極型態.PNG",e:"💫"},
+  {id:"um62",name:"捷德 豪勇型態",img:"assets/Ultraman/捷德 豪勇型態.PNG",e:"🔥"},
+  {id:"um63",name:"捷德 銀河躍昇",img:"assets/Ultraman/捷德 銀河躍昇型態.PNG",e:"🚀"},
+  {id:"um64",name:"捷德 鋼燃型態",img:"assets/Ultraman/捷德 鋼燃型態.PNG",e:"🔩"},
+  {id:"um65",name:"捷德",img:"assets/Ultraman/捷德.PNG",e:"🦸"},
+  {id:"um66",name:"早期托雷基亞",img:"assets/Ultraman/早期 托雷基亞.PNG",e:"⚔️"},
+  {id:"um67",name:"早期貝利亞",img:"assets/Ultraman/早期 貝利亞.PNG",e:"😈"},
+  {id:"um68",name:"暗黑特利卡",img:"assets/Ultraman/暗黑特利卡.PNG",e:"🌑"},
+  {id:"um69",name:"梅比斯",img:"assets/Ultraman/梅比斯.PNG",e:"♾️"},
+  {id:"um70",name:"歐布 三位一體",img:"assets/Ultraman/歐布 三位一體型態.PNG",e:"🌀"},
+  {id:"um71",name:"歐布 暗耀型態",img:"assets/Ultraman/歐布 暗耀型態.PNG",e:"🌑"},
+  {id:"um72",name:"歐布 爆炎型態",img:"assets/Ultraman/歐布 爆炎型態.PNG",e:"💥"},
+  {id:"um73",name:"歐布 疾風型態",img:"assets/Ultraman/歐布 疾風型態.PNG",e:"🌪️"},
+  {id:"um74",name:"歐布 重光型態",img:"assets/Ultraman/歐布 重光型態.PNG",e:"☀️"},
+  {id:"um75",name:"泰坦斯",img:"assets/Ultraman/泰坦斯.PNG",e:"🏔️"},
+  {id:"um76",name:"火焰紅蓮",img:"assets/Ultraman/火焰紅蓮.PNG",e:"🌹"},
+  {id:"um77",name:"特利卡 力量型",img:"assets/Ultraman/特利卡 力量型.PNG",e:"💪"},
+  {id:"um78",name:"特利卡 永恆閃耀",img:"assets/Ultraman/特利卡 永恆閃耀型態.PNG",e:"🌟"},
+  {id:"um79",name:"特利卡 疾速型",img:"assets/Ultraman/特利卡 疾速型.PNG",e:"⚡"},
+  {id:"um80",name:"特利卡",img:"assets/Ultraman/特利卡.PNG",e:"🔺"},
+  {id:"um81",name:"索拉",img:"assets/Ultraman/索拉.PNG",e:"☁️"},
+  {id:"um82",name:"羅布",img:"assets/Ultraman/羅布.PNG",e:"🎯"},
+  {id:"um83",name:"羅索",img:"assets/Ultraman/羅索.PNG",e:"❤️"},
+  {id:"um84",name:"葛羅布",img:"assets/Ultraman/葛羅布.PNG",e:"💜"},
+  {id:"um85",name:"葛莉喬",img:"assets/Ultraman/葛莉喬.PNG",e:"💚"},
+  {id:"um86",name:"蓋亞",img:"assets/Ultraman/蓋亞.PNG",e:"🌏"},
+  {id:"um87",name:"詹伯特",img:"assets/Ultraman/詹伯特.PNG",e:"🟠"},
+  {id:"um88",name:"詹博奈",img:"assets/Ultraman/詹博奈.PNG",e:"🟤"},
+  {id:"um89",name:"諾亞",img:"assets/Ultraman/諾亞.PNG",e:"🌈"},
+  {id:"um90",name:"迪卡",img:"assets/Ultraman/迪卡.PNG",e:"🔶"},
+  {id:"um91",name:"銀河",img:"assets/Ultraman/銀河.PNG",e:"🌌"},
+  {id:"um92",name:"銀河勝利",img:"assets/Ultraman/銀河勝利.PNG",e:"🌠"},
+  {id:"um93",name:"鏡騎士",img:"assets/Ultraman/鏡騎士.PNG",e:"🪞"},
+  {id:"um94",name:"阿古茹",img:"assets/Ultraman/阿古茹.PNG",e:"🌞"},
+  {id:"um95",name:"阿斯特拉",img:"assets/Ultraman/阿斯特拉.PNG",e:"⭐"},
+  {id:"um96",name:"雅克 烈日裝甲",img:"assets/Ultraman/雅克 烈日裝甲.PNG",e:"☀️"},
+  {id:"um97",name:"雅克 皓月裝甲",img:"assets/Ultraman/雅克 皓月裝甲.PNG",e:"🌕"},
+  {id:"um98",name:"雅克 銀河裝甲",img:"assets/Ultraman/雅克 銀河裝甲.PNG",e:"🌌"},
+  {id:"um99",name:"雅克",img:"assets/Ultraman/雅克.PNG",e:"🦅"},
+  {id:"um100",name:"雷古洛斯",img:"assets/Ultraman/雷古洛斯.PNG",e:"⚡"},
+  {id:"um101",name:"雷歐",img:"assets/Ultraman/雷歐.PNG",e:"🦁"},
+  {id:"um102",name:"風馬",img:"assets/Ultraman/風馬.PNG",e:"🐎"},
+  {id:"um103",name:"馬克斯",img:"assets/Ultraman/馬克斯.PNG",e:"💯"},
+  {id:"um104",name:"高斯 日冕型態",img:"assets/Ultraman/高斯 日冕型態.PNG",e:"👑"},
+  {id:"um105",name:"高斯 日蝕型態",img:"assets/Ultraman/高斯 日蝕型態.PNG",e:"🌑"},
+  {id:"um106",name:"高斯 未來型態",img:"assets/Ultraman/高斯 未來型態.PNG",e:"🔮"},
+  {id:"um107",name:"高斯",img:"assets/Ultraman/高斯.PNG",e:"🌿"},
+  {id:"um108",name:"德卡 奇蹟型",img:"assets/Ultraman/德卡 奇蹟型.PNG",e:"✨"},
+  {id:"um109",name:"史考特",img:"assets/Ultraman/史考特.JPG",e:"🦸"},
+  {id:"um110",name:"查克&貝絲",img:"assets/Ultraman/查克&貝絲.JPG",e:"👫"},
+];
+const EN=[
+  {id:"mo01",name:"巴克里貢",img:"assets/Monster/Bagrigon巴克里貢.PNG",e:"🐲",t:"monster"},
+  {id:"mo02",name:"蓋琉加",img:"assets/Monster/Gairyuga蓋琉加.PNG",e:"🦎",t:"monster"},
+  {id:"mo03",name:"Guilebaku",img:"assets/Monster/Guilebaku.PNG",e:"🦈",t:"monster"},
+  {id:"mo04",name:"Horoboros",img:"assets/Monster/Horoboros.PNG",e:"🐍",t:"monster"},
+  {id:"mo05",name:"Mogusion",img:"assets/Monster/Mogusion.PNG",e:"🦕",t:"monster"},
+  {id:"mo06",name:"涅羅剛",img:"assets/Monster/Neronga涅羅剛.PNG",e:"⚡",t:"monster"},
+  {id:"mo07",name:"Shadow",img:"assets/Monster/Shadow.PNG",e:"🌑",t:"monster"},
+  {id:"mo08",name:"五帝獸",img:"assets/Monster/五帝獸.PNG",e:"👑",t:"monster"},
+  {id:"mo09",name:"卡爾比姆",img:"assets/Monster/兇惡怪獸 卡爾比姆.PNG",e:"☄️",t:"monster"},
+  {id:"mo10",name:"佩吉拉",img:"assets/Monster/冷凍怪獸 佩吉拉Peguila.PNG",e:"🧊",t:"monster"},
+  {id:"mo11",name:"加勃拉",img:"assets/Monster/加勃拉.PNG",e:"🦙",t:"monster"},
+  {id:"mo12",name:"加拉古特隆",img:"assets/Monster/加拉古特隆.PNG",e:"🦴",t:"monster"},
+  {id:"mo13",name:"卡內貢",img:"assets/Monster/卡內貢.PNG",e:"🤑",t:"monster"},
+  {id:"mo14",name:"古比拉",img:"assets/Monster/古比拉.PNG",e:"🌊",t:"monster"},
+  {id:"mo15",name:"古蘭特王",img:"assets/Monster/古蘭特王.PNG",e:"🟤",t:"monster"},
+  {id:"mo16",name:"古頓",img:"assets/Monster/古頓.PNG",e:"🌑",t:"monster"},
+  {id:"mo17",name:"哥摩拉",img:"assets/Monster/哥摩拉.PNG",e:"🦖",t:"monster"},
+  {id:"mo18",name:"哥爾贊",img:"assets/Monster/哥爾贊.PNG",e:"🌋",t:"monster"},
+  {id:"mo19",name:"諾瓦",img:"assets/Monster/圓盤生物 諾瓦.PNG",e:"💿",t:"monster"},
+  {id:"mo20",name:"鐵列斯頓",img:"assets/Monster/地底怪獸 鐵列斯頓.PNG",e:"⛏️",t:"monster"},
+  {id:"mo21",name:"基耶隆星獸",img:"assets/Monster/基耶隆星獸.PNG",e:"🦟",t:"monster"},
+  {id:"mo22",name:"基頓",img:"assets/Monster/基頓.PNG",e:"🦐",t:"monster"},
+  {id:"mo23",name:"塔加奴拉",img:"assets/Monster/塔加奴拉.PNG",e:"🕷️",t:"monster"},
+  {id:"mo24",name:"奇拉",img:"assets/Monster/奇拉.PNG",e:"🦂",t:"monster"},
+  {id:"mo25",name:"奇瑪伊拉",img:"assets/Monster/奇瑪伊拉.PNG",e:"🐐",t:"monster"},
+  {id:"mo26",name:"巴爾坦星人",img:"assets/Monster/巴爾坦星人.PNG",e:"🦞",t:"monster"},
+  {id:"mo27",name:"巴頓",img:"assets/Monster/巴頓.PNG",e:"🐸",t:"monster"},
+  {id:"mo28",name:"布斯卡",img:"assets/Monster/布斯卡.PNG",e:"🐰",t:"monster"},
+  {id:"mo29",name:"布羅肯",img:"assets/Monster/布羅肯.PNG",e:"🤖",t:"monster"},
+  {id:"mo30",name:"布萊克王",img:"assets/Monster/布萊克王.PNG",e:"⬛",t:"monster"},
+  {id:"mo31",name:"德拉可",img:"assets/Monster/彗星怪獸 德拉可.PNG",e:"☄️",t:"monster"},
+  {id:"mo32",name:"吉加戴洛斯",img:"assets/Monster/惑星守護神 吉加戴洛斯.PNG",e:"🌍",t:"monster"},
+  {id:"mo33",name:"拉貢",img:"assets/Monster/拉貢.PNG",e:"🐟",t:"monster"},
+  {id:"mo34",name:"斯菲亞喬莫斯",img:"assets/Monster/斯菲亞喬莫斯.PNG",e:"🦠",t:"monster"},
+  {id:"mo35",name:"泰蘭特",img:"assets/Monster/暴君怪獸 泰蘭特.PNG",e:"👹",t:"monster"},
+  {id:"mo36",name:"格力札",img:"assets/Monster/格力札.PNG",e:"🦐",t:"monster"},
+  {id:"mo37",name:"格魯賽特",img:"assets/Monster/格魯賽特_1.JPG",e:"👾",t:"monster"},
+  {id:"mo38",name:"梅爾巴",img:"assets/Monster/梅爾巴.PNG",e:"🦈",t:"monster"},
+  {id:"mo39",name:"梅珈歐洛奇",img:"assets/Monster/梅珈歐洛奇.PNG",e:"🐉",t:"monster"},
+  {id:"mo40",name:"梅蚩歐洛奇",img:"assets/Monster/梅蚩歐洛奇.PNG",e:"🐲",t:"monster"},
+  {id:"mo41",name:"機械Ace",img:"assets/Monster/機械Ace.PNG",e:"🤖",t:"monster"},
+  {id:"mo42",name:"佐梅拉",img:"assets/Monster/殲滅細胞怪獸 Zomera佐梅拉.PNG",e:"🦠",t:"monster"},
+  {id:"mo43",name:"雷基尼斯",img:"assets/Monster/流星怪獸 Leugocyte雷基尼斯.PNG",e:"🌟",t:"monster"},
+  {id:"mo44",name:"特萊加隆",img:"assets/Monster/流星怪獸 Trigallon特萊加隆.PNG",e:"🦕",t:"monster"},
+  {id:"mo45",name:"瓦爾基涅斯",img:"assets/Monster/流星怪獸 Valkyneas瓦爾基涅斯.PNG",e:"🦅",t:"monster"},
+  {id:"mo46",name:"基多斯",img:"assets/Monster/深海怪獸 基多斯.PNG",e:"🌊",t:"monster"},
+  {id:"mo47",name:"混沌馬爾薩加斯",img:"assets/Monster/混沌馬爾薩加斯.PNG",e:"🌀",t:"monster"},
+  {id:"mo48",name:"溫達姆",img:"assets/Monster/溫達姆.PNG",e:"🐋",t:"monster"},
+  {id:"mo49",name:"魯納蒂克斯",img:"assets/Monster/滿月超獸 魯納蒂克斯Lunaticks.PNG",e:"🌕",t:"monster"},
+  {id:"mo50",name:"猛斯王",img:"assets/Monster/猛斯王.PNG",e:"🦁",t:"monster"},
+  {id:"mo51",name:"王者給斯拉",img:"assets/Monster/王者給斯拉.PNG",e:"👑",t:"monster"},
+  {id:"mo52",name:"瑪珈賈巴",img:"assets/Monster/瑪珈賈巴.PNG",e:"🦎",t:"monster"},
+  {id:"mo53",name:"皮古蒙",img:"assets/Monster/皮古蒙.PNG",e:"🐭",t:"monster"},
+  {id:"mo54",name:"皮爾卡蒙",img:"assets/Monster/皮爾卡蒙.PNG",e:"🐾",t:"monster"},
+  {id:"mo55",name:"眼Q",img:"assets/Monster/眼Q.PNG",e:"👁️",t:"monster"},
+  {id:"mo56",name:"霍",img:"assets/Monster/硫酸怪獸 霍.PNG",e:"🧪",t:"monster"},
+  {id:"mo57",name:"萊巴薩",img:"assets/Monster/稻妻怪鳥 Raibasser萊巴薩.PNG",e:"⚡",t:"monster"},
+  {id:"mo58",name:"米克拉斯",img:"assets/Monster/米克拉斯.PNG",e:"🐮",t:"monster"},
+  {id:"mo59",name:"紅王",img:"assets/Monster/紅王.PNG",e:"🔴",t:"monster"},
+  {id:"mo60",name:"陽戈",img:"assets/Monster/腦波怪獸 陽戈.PNG",e:"🧠",t:"monster"},
+  {id:"mo61",name:"艾斯殺手",img:"assets/Monster/艾斯殺手.PNG",e:"💀",t:"monster"},
+  {id:"mo62",name:"艾雷王",img:"assets/Monster/艾雷王.PNG",e:"⚡",t:"monster"},
+  {id:"mo63",name:"多拉各利",img:"assets/Monster/蛾超獸 多拉各利.PNG",e:"🦋",t:"monster"},
+  {id:"mo64",name:"貝姆多",img:"assets/Monster/貝姆多.PNG",e:"🦑",t:"monster"},
+  {id:"mo65",name:"貝蒙斯坦",img:"assets/Monster/貝蒙斯坦.PNG",e:"🦴",t:"monster"},
+  {id:"mo66",name:"賈米拉",img:"assets/Monster/賈米拉.PNG",e:"👨‍🚀",t:"monster"},
+  {id:"mo67",name:"賽文加",img:"assets/Monster/賽文加.PNG",e:"7️⃣",t:"monster"},
+  {id:"mo68",name:"赫爾柏洛斯",img:"assets/Monster/赫爾柏洛斯.PNG",e:"🐕",t:"monster"},
+  {id:"mo69",name:"超戈布",img:"assets/Monster/超戈布.PNG",e:"🟢",t:"monster"},
+  {id:"mo70",name:"艾塔爾加",img:"assets/Monster/超時空魔神 艾塔爾加.PNG",e:"🌀",t:"monster"},
+  {id:"mo71",name:"迪格羅斯",img:"assets/Monster/迪格羅斯.PNG",e:"🦕",t:"monster"},
+  {id:"mo72",name:"迪瑪加",img:"assets/Monster/迪瑪加.PNG",e:"🦖",t:"monster"},
+  {id:"mo73",name:"羽次郎",img:"assets/Monster/迷途珍獸 羽次郎.PNG",e:"🐦",t:"monster"},
+  {id:"mo74",name:"阿基拉",img:"assets/Monster/阿基拉.JPG",e:"👊",t:"monster"},
+  {id:"mo75",name:"金古喬",img:"assets/Monster/金古喬.PNG",e:"🦔",t:"monster"},
+  {id:"mo76",name:"阿波拉斯",img:"assets/Monster/阿波拉斯 Aboras.PNG",e:"🫧",t:"monster"},
+  {id:"mo77",name:"阿里蓬塔",img:"assets/Monster/阿里蓬塔.PNG",e:"🌵",t:"monster"},
+  {id:"mo78",name:"雙尾怪",img:"assets/Monster/雙尾怪.PNG",e:"🐍",t:"monster"},
+  {id:"mo79",name:"雪怪 Woo",img:"assets/Monster/雪怪 Woo.PNG",e:"⛄",t:"monster"},
+  {id:"mo80",name:"雪怪 吉加斯",img:"assets/Monster/雪怪 吉加斯.PNG",e:"🌨️",t:"monster"},
+  {id:"mo81",name:"雷丘巴斯",img:"assets/Monster/雷丘巴斯.PNG",e:"⚡",t:"monster"},
+  {id:"mo82",name:"電弧貝利亞",img:"assets/Monster/電弧貝利亞.PNG",e:"🔌",t:"monster"},
+  {id:"mo83",name:"巴里蓋拉",img:"assets/Monster/電擊獸 巴里蓋拉.PNG",e:"🔋",t:"monster"},
+  {id:"mo84",name:"瑪珈巴薩",img:"assets/Monster/風之魔王 瑪珈巴薩.PNG",e:"💨",t:"monster"},
+  {id:"mo85",name:"龐敦",img:"assets/Monster/龐敦.PNG",e:"🐡",t:"monster"},
+  {id:"al01",name:"黑暗扎基",img:"assets/Alien/Dark Zagi黑暗扎基.PNG",e:"👹",t:"alien"},
+  {id:"al02",name:"亞波星人",img:"assets/Alien/亞波星人.PNG",e:"👽",t:"alien"},
+  {id:"al03",name:"人工生命體M1",img:"assets/Alien/人工生命體M1.PNG",e:"🤖",t:"alien"},
+  {id:"al04",name:"伊卡爾斯星人",img:"assets/Alien/伊卡爾斯星人.PNG",e:"🦅",t:"alien"},
+  {id:"al05",name:"修朵拉姆",img:"assets/Alien/修朵拉姆.PNG",e:"🌊",t:"alien"},
+  {id:"al06",name:"格羅扎姆",img:"assets/Alien/冷凍星人 Grozam格羅扎姆.PNG",e:"🧊",t:"alien"},
+  {id:"al07",name:"凱姆爾星人",img:"assets/Alien/凱姆爾星人.PNG",e:"🐪",t:"alien"},
+  {id:"al08",name:"加茲星人",img:"assets/Alien/加茲星人.PNG",e:"⚗️",t:"alien"},
+  {id:"al09",name:"加難星人",img:"assets/Alien/加難星人.PNG",e:"🌵",t:"alien"},
+  {id:"al10",name:"勒比克星人",img:"assets/Alien/勒比克星人.PNG",e:"🔮",t:"alien"},
+  {id:"al11",name:"匹特星人",img:"assets/Alien/匹特星人.PNG",e:"🎯",t:"alien"},
+  {id:"al12",name:"卡爾蜜拉",img:"assets/Alien/卡爾蜜拉.PNG",e:"🌑",t:"alien"},
+  {id:"al13",name:"古雷格勒星人",img:"assets/Alien/古雷格勒星人.PNG",e:"🦠",t:"alien"},
+  {id:"al14",name:"基里艾洛星人",img:"assets/Alien/基里艾洛星人.PNG",e:"🦾",t:"alien"},
+  {id:"al15",name:"奈克爾星人",img:"assets/Alien/奈克爾星人.PNG",e:"🪐",t:"alien"},
+  {id:"al16",name:"巴巴爾星人",img:"assets/Alien/巴巴爾星人.PNG",e:"🐘",t:"alien"},
+  {id:"al17",name:"巴羅薩星人",img:"assets/Alien/巴羅薩星人.PNG",e:"🌹",t:"alien"},
+  {id:"al18",name:"希波利特星人",img:"assets/Alien/希波利特星人.PNG",e:"⚡",t:"alien"},
+  {id:"al19",name:"帝國星人",img:"assets/Alien/帝國星人.PNG",e:"🏰",t:"alien"},
+  {id:"al20",name:"扎古拉",img:"assets/Alien/扎古拉.PNG",e:"🐊",t:"alien"},
+  {id:"al21",name:"托雷基亞",img:"assets/Alien/托雷基亞.PNG",e:"⚔️",t:"alien"},
+  {id:"al22",name:"斯蘭星人",img:"assets/Alien/斯蘭星人.PNG",e:"🌀",t:"alien"},
+  {id:"al23",name:"夏普雷星人",img:"assets/Alien/暗黑星人 夏普雷星人.PNG",e:"🌚",t:"alien"},
+  {id:"al24",name:"暗黑歐布",img:"assets/Alien/暗黑歐布.PNG",e:"🌑",t:"alien"},
+  {id:"al25",name:"札拉布星人",img:"assets/Alien/札拉布星人.PNG",e:"🎭",t:"alien"},
+  {id:"al26",name:"梅特隆星人",img:"assets/Alien/梅特隆星人.PNG",e:"🔴",t:"alien"},
+  {id:"al27",name:"梅菲拉斯星人",img:"assets/Alien/梅菲拉斯星人.PNG",e:"🟣",t:"alien"},
+  {id:"al28",name:"梵頓星人",img:"assets/Alien/梵頓星人.PNG",e:"📿",t:"alien"},
+  {id:"al29",name:"泰拉費札",img:"assets/Alien/泰拉費札Terra Phaser.PNG",e:"🌐",t:"alien"},
+  {id:"al30",name:"澤朗星人",img:"assets/Alien/澤朗星人.PNG",e:"🟦",t:"alien"},
+  {id:"al31",name:"瓦耳基人",img:"assets/Alien/瓦耳基人.PNG",e:"🦺",t:"alien"},
+  {id:"al32",name:"百特星人",img:"assets/Alien/百特星人.PNG",e:"💯",t:"alien"},
+  {id:"al33",name:"貝利亞",img:"assets/Alien/貝利亞.PNG",e:"😈",t:"alien"},
+  {id:"al34",name:"迦比亞星人",img:"assets/Alien/迦比亞星人.PNG",e:"🕳️",t:"alien"},
+  {id:"al35",name:"迪斯雷姆",img:"assets/Alien/迪斯雷姆Deathrem.PNG",e:"💀",t:"alien"},
+  {id:"al36",name:"達貢",img:"assets/Alien/達貢.PNG",e:"🐋",t:"alien"},
+  {id:"al37",name:"達達",img:"assets/Alien/達達.PNG",e:"🎪",t:"alien"},
+  {id:"al38",name:"邪惡特利卡",img:"assets/Alien/邪惡特利卡.PNG",e:"👿",t:"alien"},
+  {id:"al39",name:"邪惡迪卡",img:"assets/Alien/邪惡迪卡.PNG",e:"😈",t:"alien"},
+  {id:"al40",name:"塔爾塔羅斯",img:"assets/Alien/阿布索留特人 塔爾塔羅斯.PNG",e:"🏚️",t:"alien"},
+  {id:"al41",name:"泰坦",img:"assets/Alien/阿布索留特人 泰坦.PNG",e:"⛰️",t:"alien"},
+  {id:"al42",name:"迪亞波羅",img:"assets/Alien/阿布索留特人 迪亞波羅.PNG",e:"👺",t:"alien"},
+  {id:"al43",name:"馬格馬星人",img:"assets/Alien/馬格馬星人.PNG",e:"🌋",t:"alien"},
+  {id:"al44",name:"安培拉星人",img:"assets/Alien/黑暗宇宙大皇帝 安培拉星人.PNG",e:"⚡",t:"alien"},
+  {id:"al45",name:"黑暗梅菲斯特",img:"assets/Alien/黑暗梅菲斯特.PNG",e:"🌑",t:"alien"},
+  {id:"al46",name:"黑暗殺手",img:"assets/Alien/黑暗殺手Dark-Kiler.PNG",e:"🔪",t:"alien"},
+  {id:"al47",name:"黑暗浮士德",img:"assets/Alien/黑暗浮士德Dark Faust.PNG",e:"📜",t:"alien"},
+];
+
+// ── COVER IMAGES ──────────────────────────────────────────────────
+const COVERS_UM=['assets/cover/卡包UM01.PNG','assets/cover/卡包UM02.PNG','assets/cover/卡包UM03.PNG','assets/cover/卡包UM04.PNG','assets/cover/卡包UM05.PNG'];
+const COVERS_MA=['assets/cover/卡包MA01.PNG','assets/cover/卡包MA02.PNG','assets/cover/卡包MA03.PNG','assets/cover/卡包MA04.PNG','assets/cover/卡包MA05.PNG'];
+function randCover(cls){const pool=cls==='um'?COVERS_UM:COVERS_MA;return pool[Math.floor(Math.random()*pool.length)];}
+
+// ── APP STATE (localStorage) ──────────────────────────────────────
+const APP_KEY='ultraman_app_state';
+function _load(){try{const s=localStorage.getItem(APP_KEY);return s?JSON.parse(s):{}}catch(e){return {};}}
+function _save(p){try{localStorage.setItem(APP_KEY,JSON.stringify(Object.assign({},_load(),p)));}catch(e){}}
+function getSharedStars(){return Math.min(3,parseInt(_load().stars)||0);}
+function setSharedStars(n){
+  n=Math.max(0,Math.min(3,n));_save({stars:n});syncStarUI(n);
+  try{window.parent.postMessage({type:'starUpdate',stars:n},'*');}catch(e){}
+}
+function syncStarUI(n){
+  ['s0','s1','s2'].forEach((id,i)=>{
+    const el=document.getElementById(id);if(!el)return;
+    const was=el.classList.contains('on');
+    if(i<n){el.textContent='⭐';el.classList.add('on');if(!was){el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');}}
+    else{el.textContent='☆';el.classList.remove('on','pop');}
+  });
+  const sv=document.getElementById('sv2'),sb=document.getElementById('sb2');
+  if(sv)sv.textContent=n+' / 3';if(sb)sb.style.width=(n/3*100)+'%';
+  // Enable/disable draw button based on stars
+  const bUm=document.getElementById('bUm');
+  if(bUm)bUm.style.opacity=n>=3?'1':'0.35';
+}
+function saveCollection(){_save({umBook,moBook,umHand,moPend,umW});}
+function loadCollection(){
+  const s=_load();
+  // Restore umBook (all ultraman collected)
+  if(s.umBook && typeof s.umBook==='object') Object.assign(umBook,s.umBook);
+  // Restore moBook (all monster/alien collected)
+  if(s.moBook && typeof s.moBook==='object') Object.assign(moBook,s.moBook);
+  // Restore umHand (ultraman cards in hand)
+  if(s.umHand !== undefined && s.umHand !== null) umHand = parseInt(s.umHand)||0;
+  // Restore moPend - use Array.isArray check, allow empty array (all collected!)
+  if(Array.isArray(s.moPend)) moPend = s.moPend;
+  // Restore umW (draw probability weights - full replacement)
+  if(s.umW && typeof s.umW==='object'){
+    Object.keys(umW).forEach(id=>{ if(s.umW[id]!==undefined) umW[id]=s.umW[id]; });
+  }
+}
+window.addEventListener('message',e=>{if(e.data&&e.data.type==='starUpdate')syncStarUI(e.data.stars||0);});
+setInterval(()=>syncStarUI(getSharedStars()),1500);
+
+// ── 家長密碼 ──────────────────────────────────────────────────────
+const PC_CODE='661122';
+let _pcIn='',_pcCb=null;
+function pcOpen(cb){
+  _pcCb=cb;_pcIn='';_pcDots();
+  document.getElementById('pcErr').textContent='';
+  document.getElementById('pcOv').style.display='flex';
+}
+function pcClose(){
+  document.getElementById('pcOv').style.display='none';
+  _pcIn='';_pcCb=null;
+}
+function pcKey(k){
+  if(k==='⌫'){_pcIn=_pcIn.slice(0,-1);}
+  else if(k==='✕'){_pcIn='';}
+  else if(_pcIn.length<6){_pcIn+=k;}
+  _pcDots();
+  document.getElementById('pcErr').textContent='';
+  if(_pcIn.length===6)_pcCheck();
+}
+function _pcDots(){
+  for(let i=0;i<6;i++){
+    const d=document.getElementById('pcd'+i);
+    if(d)d.classList.toggle('on',i<_pcIn.length);
+  }
+}
+function _pcCheck(){
+  if(_pcIn===PC_CODE){
+    document.getElementById('pcOv').style.display='none';
+    _pcIn='';
+    if(_pcCb){const cb=_pcCb;_pcCb=null;cb();}
+  } else {
+    document.getElementById('pcErr').textContent='密碼錯誤，請再試一次';
+    _pcIn='';_pcDots();
+    const box=document.getElementById('pcBox');
+    box.style.animation='none';void box.offsetWidth;
+    box.style.animation='pcShake .4s ease';
+  }
+}
+function rewardEarnStar(){
+  const cur=getSharedStars();
+  if(cur>=3){toast('已集滿 3 顆星！請先抽力霸王卡 🦸');return;}
+  pcOpen(function(){
+    const n=cur+1;
+    setSharedStars(n);
+    updateUI();
+    toast(n>=3?'⭐⭐⭐ 集滿啦！快去抽力霸王！':'獲得一顆星星！還差 '+(3-n)+' 顆 ⭐');
+  });
+}
+
+// ── STATE ──────────────────────────────────────────────────────────
+let umHand=0,umBook={},moBook={};
+let umW={};UM.forEach(u=>umW[u.id]=1);
+let moPend=[...EN.map(e=>e.id)];
+let pType=null,pOpts=[],picked=null,pickIdx=null;
+
+// ── CARD BUILDER ──────────────────────────────────────────────────
+function tc(c){return!c.t?'tum':c.t==='monster'?'tmo':'tal';}
+function tl(c){return!c.t?'力霸王':c.t==='monster'?'怪獸':'異星人';}
+function buildCard(card,dup,onClick){
+  const shell=document.createElement('div');
+  shell.className='card-shell '+tc(card);
+  if(onClick)shell.onclick=onClick;
+  const face=document.createElement('div');face.className='card-face';
+  // Header
+  const hdr=document.createElement('div');hdr.className='card-header';
+  const lbl=document.createElement('span');lbl.className='card-type-lbl';lbl.textContent=tl(card);
+  const num=document.createElement('span');num.className='card-num';num.textContent=card.id.toUpperCase();
+  hdr.appendChild(lbl);hdr.appendChild(num);
+  // Art
+  const art=document.createElement('div');art.className='card-art';
+  if(card.img){
+    const img=document.createElement('img');
+    img.src=card.img;img.alt=card.name;
+    img.style.cssText='width:80%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.8));';
+    const fb=document.createElement('span');
+    fb.style.cssText='display:none;font-size:52px;line-height:1;';
+    fb.textContent=card.e||'❓';
+    img.onerror=function(){this.style.display='none';fb.style.display='block';};
+    art.appendChild(img);art.appendChild(fb);
+  } else {
+    const sp=document.createElement('span');sp.textContent=card.e||'❓';art.appendChild(sp);
+  }
+  // Footer
+  const ftr=document.createElement('div');ftr.className='card-footer';
+  const nm=document.createElement('div');nm.className='card-name';nm.textContent=card.name;
+  ftr.appendChild(nm);
+  face.appendChild(hdr);face.appendChild(art);face.appendChild(ftr);
+  shell.appendChild(face);
+  if(dup>1){const db=document.createElement('div');db.className='dup-badge';db.textContent='x'+dup;shell.appendChild(db);}
+  return shell;
+}
+function buildLocked(num){
+  const d=document.createElement('div');d.className='card-locked';
+  d.innerHTML='<div class="card-locked-icon">🔒</div><div class="card-locked-num">'+num+'</div>';return d;
+}
+function buildAdd(){
+  const d=document.createElement('div');d.className='card-add';
+  d.innerHTML='<div class="card-add-icon">＋</div><div class="card-add-lbl">新增卡片</div>';return d;
+}
+
+// ── PACK BUILDER ──────────────────────────────────────────────────
+function buildPack(cls,coverImg){
+  const d=document.createElement('div');d.className='pack-body';
+  const img=document.createElement('img');
+  img.src=coverImg;img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:8px;display:block;';
+  img.onerror=function(){
+    const bg={um:'#1565C0',mo:'#C62828',al:'#2E7D32'}[cls]||'#1565C0';
+    this.parentElement.style.background=bg;this.remove();
+  };
+  d.appendChild(img);return d;
+}
+function buildTearHalf(cls,isTop,coverImg){
+  const C={um:{b1:'#0D47A1',b2:'#1565C0',a:'#F9A825'},mo:{b1:'#7B0000',b2:'#C62828',a:'#EF9A9A'},al:{b1:'#1B5E20',b2:'#2E7D32',a:'#A5D6A7'}};
+  const c=C[cls];const d=document.createElement('div');d.className=isTop?'t-top':'t-bot';d.style.overflow='hidden';
+  if(isTop){
+    d.style.borderRadius='8px 8px 0 0';
+    const w=document.createElement('div');w.style.cssText='position:relative;width:100%;height:100%;overflow:hidden;';
+    const img=document.createElement('img');img.src=coverImg;img.style.cssText='width:420px;position:absolute;top:0;left:0;';
+    img.onerror=function(){w.style.background='linear-gradient(135deg,'+c.b1+','+c.b2+')';this.remove();};
+    const ln=document.createElement('div');ln.style.cssText='position:absolute;bottom:0;left:0;right:0;height:2px;background:repeating-linear-gradient(90deg,'+c.a+' 0,'+c.a+' 4px,transparent 4px,transparent 8px);opacity:.85;';
+    w.appendChild(img);w.appendChild(ln);d.appendChild(w);
+  } else {
+    d.style.borderRadius='0 0 8px 8px';
+    const w=document.createElement('div');w.style.cssText='position:relative;width:100%;height:100%;overflow:hidden;';
+    const img=document.createElement('img');img.src=coverImg;img.style.cssText='width:420px;position:absolute;bottom:0;left:0;';
+    img.onerror=function(){w.style.background='linear-gradient(135deg,'+c.b2+','+c.b1+')';this.remove();};
+    const glow=document.createElement('div');glow.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:32px;';glow.textContent='✨';
+    w.appendChild(img);w.appendChild(glow);d.appendChild(w);
+  }return d;
+}
+
+// ── GACHA ─────────────────────────────────────────────────────────
+function wDraw(pool){const tot=pool.reduce((s,id)=>s+umW[id],0);let r=Math.random()*tot;for(const id of pool){r-=umW[id];if(r<=0)return id;}return pool[pool.length-1];}
+function gen5Um(){const pool=[...UM.map(u=>u.id)],ch=[],tw={...umW};while(ch.length<Math.min(5,pool.length)){const tot=pool.reduce((s,id)=>s+tw[id],0);let r=Math.random()*tot,p=pool[0];for(const id of pool){r-=tw[id];if(r<=0){p=id;break;}}ch.push(p);pool.splice(pool.indexOf(p),1);}return ch.map(id=>UM.find(u=>u.id===id));}
+function gen5Mo(){return[...moPend].sort(()=>Math.random()-.5).slice(0,Math.min(5,moPend.length)).map(id=>EN.find(e=>e.id===id));}
+
+function openPacks(type){
+  const stars=getSharedStars();
+  if(type==='um'&&stars<3){toast('還不夠 3 顆星！請先去練習獲得星星 ⭐');return;}
+  if(type==='mo'&&umHand<3){toast('需要 3 張力霸王才能換！');return;}
+  if(type==='mo'&&moPend.length===0){toast('所有卡片已收集完畢！🎊');return;}
+  pType=type;pickIdx=null;picked=null;
+  pOpts=type==='um'?gen5Um():gen5Mo();
+  const row=document.getElementById('prow');row.innerHTML='';
+  // 洗牌5張卡包圖樣，每個位置固定一張不重複
+  const _covers=(type==='um'?[...COVERS_UM]:[...COVERS_MA])
+    .sort(()=>Math.random()-0.5);
+  pOpts.forEach((card,i)=>{
+    const cls=type==='um'?'um':(card.t==='monster'?'mo':'al');
+    const wrap=document.createElement('div');wrap.className='pack-wrap '+cls;
+    const pb=buildPack(cls,_covers[i%_covers.length]);
+    const lbl=document.createElement('div');lbl.className='pack-num-lbl';lbl.textContent=['①','②','③','④','⑤'][i];
+    wrap.appendChild(pb);wrap.appendChild(lbl);wrap.onclick=()=>pickPack(i,wrap,card);row.appendChild(wrap);
+  });
+  document.getElementById('selT').textContent=type==='um'?'選一個力霸王卡包！':'選一個神秘卡包！';
+  document.getElementById('selS').textContent=type==='um'?'🔵 藍色=力霸王，各藏一隻不同的力霸王':'🔴 怪獸 / 🟢 異星人，各藏驚喜！';
+  phase('sel');document.getElementById('modal').classList.add('show');
+}
+function pickPack(idx,el,card){
+  if(pickIdx!==null)return;pickIdx=idx;picked=card;
+  document.querySelectorAll('.pack-wrap').forEach(p=>p.classList.remove('sel'));
+  el.classList.add('sel');setTimeout(()=>doTear(card),500);
+}
+function doTear(card){
+  phase('tear');
+  const cls=pType==='um'?'um':(card.t==='monster'?'mo':'al');
+  const scene=document.getElementById('tearScene');scene.innerHTML='';
+  const cov=randCover(cls);
+  scene.appendChild(buildTearHalf(cls,true,cov));scene.appendChild(buildTearHalf(cls,false,cov));
+  const sparks=cls==='mo'?['🔴','💢','⚡','🌋']:cls==='al'?['🟢','👾','🌿','💚']:['✨','⭐','💫','🌟'];
+  for(let i=0;i<12;i++){setTimeout(()=>{const s=document.createElement('div');s.className='spark';s.textContent=sparks[Math.floor(Math.random()*sparks.length)];const dx=(Math.random()-.5)*130,dy=-(Math.random()*110+20);s.style.cssText='left:'+(25+Math.random()*90)+'px;top:'+(10+Math.random()*50)+'px;--dx:'+dx+'px;--dy:'+dy+'px;animation-delay:'+(i*.05)+'s;';scene.appendChild(s);setTimeout(()=>s.remove(),1000);},i*45);}
+  setTimeout(()=>doReveal(card),1000);
+}
+function doReveal(card){
+  phase('rv');
+  const isUm=pType==='um';
+  document.getElementById('rvT').textContent=isUm?'🎉 獲得力霸王！':card.t==='monster'?'🔴 獲得怪獸卡！':'🟢 獲得異星人卡！';
+  const wrap=document.getElementById('rvWrap');wrap.innerHTML='';wrap.appendChild(buildCard(card,1,null));
+  const note=document.getElementById('rvNote');
+  if(isUm){const nw=umW[card.id]*.5,tot=UM.reduce((s,u)=>s+(u.id===card.id?nw:umW[u.id]),0);note.textContent='下次抽到此卡機率降半（約'+Math.round(nw/tot*100)+'%）';}
+  else note.textContent='已加入收集冊，不重複出現';
+}
+function commit(){
+  const card=picked,type=pType;
+  if(type==='um'){
+    setSharedStars(0);umHand++;umW[card.id]*=.5;
+    if(umBook[card.id])umBook[card.id].count++;else umBook[card.id]={data:card,count:1};
+    toast(card.name+' 加入收集冊！');
+  } else {
+    umHand=0;moPend=moPend.filter(id=>id!==card.id);moBook[card.id]={data:card};
+    toast(card.name+' 加入收集冊！力霸王已消耗');
+  }
+  document.getElementById('modal').classList.remove('show');
+  saveCollection();updateUI();
+}
+function phase(p){
+  document.getElementById('phSel').style.display=p==='sel'?'flex':'none';
+  document.getElementById('phTear').style.display=p==='tear'?'flex':'none';
+  document.getElementById('phRv').style.display=p==='rv'?'flex':'none';
+}
+
+// ── ZOOM ──────────────────────────────────────────────────────────
+function openZoom(card,dup){
+  const zc=document.getElementById('zoomCard');zc.innerHTML='';
+  const el=buildCard(card,dup,null);el.style.cursor='default';el.style.pointerEvents='none';
+  zc.appendChild(el);document.getElementById('zoomBg').classList.add('show');
+}
+function closeZoom(){document.getElementById('zoomBg').classList.remove('show');}
+document.getElementById('zoomBg').addEventListener('click',function(e){if(e.target===this)closeZoom();});
+
+// ── RENDER ────────────────────────────────────────────────────────
+function updateUI(){
+  const n=getSharedStars();
+  syncStarUI(n);
+  document.getElementById('uv2').textContent=umHand+' / 3';
+  document.getElementById('ub2').style.width=(umHand/3*100)+'%';
+  document.getElementById('stUm').textContent=Object.values(umBook).reduce((s,e)=>s+(e.count||1),0);
+  document.getElementById('stMo').textContent=Object.keys(moBook).length;
+  document.getElementById('bMo').style.opacity=umHand>=3&&moPend.length>0?'1':'0.35';
+  document.getElementById('tUm').textContent=UM.length;
+  document.getElementById('tMo').textContent=EN.length;
+  renderColl();
+}
+function renderColl(){
+  const ug=document.getElementById('gUm'),ue=document.getElementById('eUm');
+  const ues=Object.values(umBook);
+  document.getElementById('cUm').textContent=ues.length;
+  if(!ues.length){ug.style.display='none';ue.style.display='block';}
+  else{
+    ug.style.display='grid';ue.style.display='none';ug.innerHTML='';
+    ues.forEach(e=>{ug.appendChild(buildCard(e.data,e.count,()=>openZoom(e.data,e.count)));});
+    UM.filter(u=>!umBook[u.id]).forEach(u=>{ug.appendChild(buildLocked(u.id.toUpperCase()));});
+    ug.appendChild(buildAdd());
+  }
+  const mg=document.getElementById('gMo'),me=document.getElementById('eMo');
+  const mes=Object.values(moBook);
+  document.getElementById('cMo').textContent=mes.length;
+  const oldRH=document.getElementById('moRH');if(oldRH)oldRH.remove();
+  if(!mes.length){mg.style.display='none';me.style.display='block';}
+  else{
+    mg.style.display='grid';me.style.display='none';mg.innerHTML='';
+    mes.forEach(e=>{mg.appendChild(buildCard(e.data,1,()=>openZoom(e.data,1)));});
+    EN.filter(e=>!moBook[e.id]).forEach(e=>{mg.appendChild(buildLocked(e.id.toUpperCase()));});
+    mg.appendChild(buildAdd());
+    const rem=document.createElement('div');rem.className='rh';rem.id='moRH';
+    rem.textContent=moPend.length?'還有 '+moPend.length+' 張未收集':'🎊 全部收集完畢！';
+    document.getElementById('panMo').appendChild(rem);
+  }
+}
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('on',['um','mo'][i]===t));
+  document.getElementById('panUm').classList.toggle('on',t==='um');
+  document.getElementById('panMo').classList.toggle('on',t==='mo');
+}
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+loadCollection();
+updateUI();
+
+// ── AUTO-SAVE on page hide / unload ──────────────────────────────
+document.addEventListener('visibilitychange', function(){
+  if(document.hidden) saveCollection();
+});
+window.addEventListener('pagehide', saveCollection);
+window.addEventListener('beforeunload', saveCollection);
+</script>
+</body>
+</html>

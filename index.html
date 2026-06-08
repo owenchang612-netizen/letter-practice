@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>小寶貝學習樂園 🌟</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Noto+Sans+TC:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pink:#F2DBE1;--pink-d:#E8A8BE;--pink-dd:#C9657F;
+  --purp:#C4A6CA;--purp-d:#9B72A8;--purp-dd:#6D3E85;
+  --teal:#2ABFBF;--teal-d:#1A9090;--teal-dd:#0D6060;
+  --gold:#F9A825;--gold-l:#FFF9C4;
+  --green:#43A047;--green-l:#E8F5E9;
+  --bg:#B3D8A3;--card:#FFFFFF;
+  --tx:#1A2744;--txs:rgba(26,39,68,.55);
+  --r:20px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:'Nunito','Noto Sans TC',sans-serif;
+  background:#B3D8A3;color:#1A2744;
+  display:flex;flex-direction:column;
+  min-height:100vh;
+}
+
+/* ── STAR FIELD BG ── */
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 20% 20%,rgba(100,180,255,.15) 0,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(100,200,255,.1) 0,transparent 50%);}
+
+/* ── APP SHELL ── */
+.app{
+  position:relative;z-index:1;
+  width:100%;max-width:720px;margin:0 auto;
+  height:100vh;display:flex;flex-direction:column;
+  overflow:hidden;
+}
+
+/* ── HOME SCREEN ── */
+.home{
+  flex:1;display:flex;flex-direction:column;
+  padding:0;overflow-y:auto;
+  animation:fadeIn .4s ease;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* Hero banner */
+.hero{
+  padding:2rem 1.25rem 1.5rem;
+  background:linear-gradient(160deg,rgba(109,62,133,.5),rgba(13,96,96,.35));
+  border-bottom:1px solid rgba(255,255,255,.08);
+  display:flex;align-items:center;gap:1rem;
+  flex-shrink:0;
+}
+.hero-avatar{
+  width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(135deg,var(--purp-dd),var(--teal-dd));
+  display:flex;align-items:center;justify-content:center;
+  font-size:32px;flex-shrink:0;
+  box-shadow:0 4px 20px rgba(109,62,133,.5);
+}
+.hero-text{}
+.hero-greeting{font-size:13px;color:rgba(26,39,68,.5);font-weight:700;}
+.hero-title{font-size:22px;font-weight:900;line-height:1.1;margin-top:2px;}
+.hero-sub{font-size:11px;color:rgba(26,39,68,.5);font-weight:700;margin-top:3px;}
+
+/* Star bar */
+.star-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:.75rem 1.25rem;
+  background:rgba(249,168,37,.08);
+  border-bottom:1px solid rgba(249,168,37,.15);
+  flex-shrink:0;
+}
+.star-bar-label{font-size:12px;font-weight:800;color:var(--gold);flex:1;}
+.star-pips{display:flex;gap:5px;}
+.star-pip{
+  width:24px;height:24px;border-radius:50%;
+  border:1.5px solid rgba(249,168,37,.3);
+  background:rgba(249,168,37,.08);
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+}
+.star-pip.on{background:rgba(249,168,37,.2);border-color:var(--gold);}
+.go-reward-btn{
+  padding:5px 12px;border-radius:10px;border:1px solid rgba(249,168,37,.4);
+  background:rgba(249,168,37,.12);color:var(--gold);
+  font-size:11px;font-weight:800;cursor:pointer;
+  font-family:'Nunito','Noto Sans TC',sans-serif;
+  transition:all .18s;
+}
+.go-reward-btn:hover{background:rgba(249,168,37,.25);}
+
+/* Section label */
+.sec-lbl{
+  font-size:10px;font-weight:800;color:rgba(26,39,68,.5);
+  text-transform:uppercase;letter-spacing:.1em;
+  padding:.875rem 1.25rem .5rem;flex-shrink:0;
+}
+
+/* Module grid */
+.module-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:10px;padding:0 1.25rem 1.25rem;
+}
+
+.module-card{
+  border-radius:var(--r);padding:1.125rem 1rem;
+  display:flex;flex-direction:column;gap:.5rem;
+  cursor:pointer;position:relative;overflow:hidden;
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s;
+  border:1px solid rgba(255,255,255,.08);
+  min-height:120px;
+}
+.module-card:active{transform:scale(.96);}
+.module-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.08) 0,rgba(255,255,255,0) 60%);
+  pointer-events:none;
+}
+
+/* Card colour themes */
+.card-num{background:linear-gradient(135deg,#1A2A6C,#B21F1F,#FDBB2D);box-shadow:0 6px 20px rgba(26,42,108,.5);}
+.card-letter{background:linear-gradient(135deg,#4A0080,#7B2FBE,#C4A6CA);box-shadow:0 6px 20px rgba(74,0,128,.4);}
+.card-shape{background:linear-gradient(135deg,#0D4F4F,#1A9090,#A8E6CF);box-shadow:0 6px 20px rgba(13,79,79,.5);}
+.card-reward{background:linear-gradient(135deg,#7B3F00,#C67C3A,#F9A825);box-shadow:0 6px 20px rgba(123,63,0,.5);}
+
+.card-icon{font-size:32px;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4));}
+.card-title{font-size:15px;font-weight:900;line-height:1.1;color:#ffffff;
+  text-shadow:
+    -1px -1px 0 #000,
+     1px -1px 0 #000,
+    -1px  1px 0 #000,
+     1px  1px 0 #000,
+     0px  2px 6px rgba(0,0,0,0.7);
+  paint-order:stroke fill;}
+.card-desc{font-size:10px;color:rgba(255,255,255,.7);font-weight:700;line-height:1.4;}
+.card-badge{
+  position:absolute;top:10px;right:10px;
+  background:rgba(0,0,0,.3);border-radius:20px;
+  padding:2px 8px;font-size:9px;font-weight:800;color:rgba(255,255,255,.8);
+}
+.card-progress{
+  position:absolute;bottom:0;left:0;right:0;height:3px;
+  background:rgba(255,255,255,.1);border-radius:0 0 var(--r) var(--r);overflow:hidden;
+}
+.card-progress-fill{height:100%;background:rgba(255,255,255,.5);border-radius:0 0 var(--r) var(--r);transition:width .6s;}
+
+/* Wide reward card */
+.module-grid .card-reward{grid-column:1/-1;min-height:90px;flex-direction:row;align-items:center;gap:1rem;}
+.card-reward .card-icon{font-size:42px;}
+.card-reward-info{flex:1;}
+.card-reward-stars{display:flex;gap:4px;margin-top:4px;}
+.card-reward-star{font-size:14px;}
+
+/* ── MODULE FRAME ── */
+.module-frame{
+  position:fixed;inset:0;z-index:100;
+  background:var(--bg);
+  display:none;flex-direction:column;
+  animation:slideUp .35s cubic-bezier(.34,1.56,.64,1);
+  max-width:720px;margin:0 auto;
+}
+.module-frame.open{display:flex;}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes slideDown{from{transform:translateY(0);opacity:1}to{transform:translateY(100%);opacity:0}}
+.module-frame.closing{animation:slideDown .3s ease forwards;}
+
+.module-topbar{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 16px;flex-shrink:0;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.back-btn{
+  width:36px;height:36px;border-radius:12px;
+  background:rgba(255,255,255,.1);border:none;
+  color:#fff;font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .15s;
+}
+.back-btn:hover{background:rgba(255,255,255,.18);}
+.module-topbar-title{font-size:16px;font-weight:900;flex:1;}
+
+.module-content{flex:1;overflow-y:auto;overflow-x:hidden;}
+.module-content iframe{
+  width:100%;height:100%;border:none;display:block;
+}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{
+  display:flex;
+  background:rgba(237,246,255,.97);
+  border-top:1px solid rgba(26,39,68,.1);
+  flex-shrink:0;backdrop-filter:blur(16px);
+  padding-bottom:env(safe-area-inset-bottom,0);
+}
+.nav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  padding:.625rem .5rem;gap:3px;cursor:pointer;
+  border:none;background:transparent;color:rgba(26,39,68,.5);
+  font-family:'Nunito','Noto Sans TC',sans-serif;
+  transition:all .18s;
+}
+.nav-item.active{color:var(--gold);}
+.nav-icon{font-size:20px;line-height:1;}
+.nav-label{font-size:9px;font-weight:800;letter-spacing:.04em;}
+
+/* ── PROGRESS SCREEN ── */
+.progress-screen{
+  flex:1;overflow-y:auto;padding:1.25rem;
+  display:flex;flex-direction:column;gap:.875rem;
+  animation:fadeIn .3s ease;
+}
+.prog-title{font-size:18px;font-weight:900;margin-bottom:.25rem;}
+.prog-sub{font-size:12px;color:rgba(26,39,68,.5);font-weight:700;}
+.prog-card{
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;padding:1rem;display:flex;align-items:center;gap:12px;
+}
+.prog-card-icon{font-size:28px;flex-shrink:0;}
+.prog-card-info{flex:1;}
+.prog-card-name{font-size:13px;font-weight:800;}
+.prog-card-desc{font-size:10px;color:rgba(26,39,68,.5);font-weight:700;margin-top:2px;}
+.prog-bar-bg{height:6px;background:rgba(255,255,255,.1);border-radius:6px;margin-top:7px;overflow:hidden;}
+.prog-bar-fill{height:100%;border-radius:6px;transition:width .6s;}
+.prog-pct{font-size:11px;font-weight:800;color:rgba(26,39,68,.5);margin-top:4px;}
+
+/* star count chips */
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:.25rem;}
+.chip{
+  padding:3px 10px;border-radius:99px;font-size:10px;font-weight:800;
+  background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);
+}
+.chip.done{background:rgba(67,160,71,.25);color:#81C784;}
+
+/* toast */
+.toast{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(60px);
+  background:rgba(22,24,42,.96);border:1px solid rgba(255,255,255,.15);
+  border-radius:12px;padding:10px 20px;font-size:13px;font-weight:700;color:#fff;
+  box-shadow:0 6px 24px rgba(0,0,0,.5);transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  z-index:999;white-space:nowrap;
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HOME -->
+  <div class="home" id="homeScreen">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-avatar">🌟</div>
+      <div class="hero-text">
+        <div class="hero-greeting">歡迎回來！</div>
+        <div class="hero-title">小寶貝學習樂園</div>
+        <div class="hero-sub">今天要練習什麼呢？</div>
+      </div>
+    </div>
+
+    <!-- Star bar -->
+    <div class="star-bar">
+      <div class="star-bar-label">⭐ 今日星星</div>
+      <div class="star-pips">
+        <div class="star-pip" id="hStar0">☆</div>
+        <div class="star-pip" id="hStar1">☆</div>
+        <div class="star-pip" id="hStar2">☆</div>
+      </div>
+      <button class="go-reward-btn" onclick="openModule('reward')">🎁 獎勵</button>
+    </div>
+
+    <!-- Practice modules -->
+    <div class="sec-lbl">練習項目</div>
+    <div class="module-grid">
+
+      <!-- Numbers -->
+      <div class="module-card card-num" onclick="openModule('number')">
+        <div class="card-badge">數字</div>
+        <div class="card-icon">🔢</div>
+        <div class="card-title">數字<br>書寫練習</div>
+        <div class="card-desc">0–9 及國字<br>一到十</div>
+        <div class="card-progress"><div class="card-progress-fill" id="numProg" style="width:0%"></div></div>
+      </div>
+
+      <!-- Letters -->
+      <div class="module-card card-letter" onclick="openModule('letter')">
+        <div class="card-badge">字母</div>
+        <div class="card-icon">🔤</div>
+        <div class="card-title">英文字母<br>書寫練習</div>
+        <div class="card-desc">A–Z 大小寫<br>三組漸進</div>
+        <div class="card-progress"><div class="card-progress-fill" id="letProg" style="width:0%"></div></div>
+      </div>
+
+      <!-- Shapes -->
+      <div class="module-card card-shape" onclick="openModule('shape')">
+        <div class="card-badge">形狀</div>
+        <div class="card-icon">⭕</div>
+        <div class="card-title">形狀<br>描繪練習</div>
+        <div class="card-desc">基礎・多邊形<br>變化型</div>
+        <div class="card-progress"><div class="card-progress-fill" id="shaProg" style="width:0%"></div></div>
+      </div>
+
+      <!-- Reward (wide) -->
+      <div class="module-card card-reward" onclick="openModule('reward')">
+        <div class="card-icon">🦸</div>
+        <div class="card-reward-info">
+          <div class="card-title">超人力霸王<br>獎勵集卡</div>
+          <div class="card-desc">集星星・抽力霸王・換怪獸卡</div>
+          <div class="card-reward-stars" id="rewardStarsDisplay">
+            <span class="card-reward-star">☆</span>
+            <span class="card-reward-star">☆</span>
+            <span class="card-reward-star">☆</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PROGRESS SCREEN -->
+  <div class="progress-screen" id="progressScreen" style="display:none">
+    <div>
+      <div class="prog-title">學習進度 📊</div>
+      <div class="prog-sub">持續練習，累積每一顆星星！</div>
+    </div>
+
+    <div class="prog-card">
+      <div class="prog-card-icon">🔢</div>
+      <div class="prog-card-info">
+        <div class="prog-card-name">數字書寫練習</div>
+        <div class="prog-card-desc">阿拉伯數字 ＆ 國字</div>
+        <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:0%;background:linear-gradient(90deg,#FDBB2D,#B21F1F)"></div></div>
+        <div class="prog-pct">尚未開始</div>
+        <div class="chips">
+          <div class="chip">0–9 基礎</div>
+          <div class="chip">一–十 基礎</div>
+          <div class="chip">進階</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prog-card">
+      <div class="prog-card-icon">🔤</div>
+      <div class="prog-card-info">
+        <div class="prog-card-name">英文字母練習</div>
+        <div class="prog-card-desc">大寫 ＆ 小寫，三組分組</div>
+        <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:0%;background:linear-gradient(90deg,var(--purp-d),var(--purp-dd))"></div></div>
+        <div class="prog-pct">尚未開始</div>
+        <div class="chips">
+          <div class="chip">A–H 組</div>
+          <div class="chip">I–P 組</div>
+          <div class="chip">Q–Z 組</div>
+          <div class="chip">進階挑戰</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prog-card">
+      <div class="prog-card-icon">⭕</div>
+      <div class="prog-card-info">
+        <div class="prog-card-name">形狀描繪練習</div>
+        <div class="prog-card-desc">基礎型・多邊形・變化型</div>
+        <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:0%;background:linear-gradient(90deg,var(--teal),var(--teal-dd))"></div></div>
+        <div class="prog-pct">尚未開始</div>
+        <div class="chips">
+          <div class="chip">基礎型</div>
+          <div class="chip">多邊形</div>
+          <div class="chip">變化型</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prog-card">
+      <div class="prog-card-icon">🦸</div>
+      <div class="prog-card-info">
+        <div class="prog-card-name">超人力霸王集卡</div>
+        <div class="prog-card-desc">109 力霸王・85 怪獸・47 異星人</div>
+        <div class="prog-bar-bg"><div class="prog-bar-fill" id="rewardProgFill" style="width:0%;background:linear-gradient(90deg,var(--gold),#FF8F00)"></div></div>
+        <div class="prog-pct" id="rewardProgPct">已收集 0 / 241 張</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="nav-item active" id="navHome" onclick="switchNav('home')">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-label">首頁</div>
+    </button>
+    <button class="nav-item" id="navProgress" onclick="switchNav('progress')">
+      <div class="nav-icon">📊</div>
+      <div class="nav-label">進度</div>
+    </button>
+    <button class="nav-item" id="navReward" onclick="openModule('reward')">
+      <div class="nav-icon">🎁</div>
+      <div class="nav-label">獎勵</div>
+    </button>
+  </div>
+
+</div><!-- .app -->
+
+<!-- MODULE FRAME (overlay) -->
+<div class="module-frame" id="moduleFrame">
+  <div class="module-topbar" id="moduleTopbar">
+    <button class="back-btn" onclick="closeModule()">←</button>
+    <div class="module-topbar-title" id="moduleTitle">練習</div>
+  </div>
+  <div class="module-content">
+    <iframe id="moduleIframe" src="" title="練習模組"></iframe>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── MODULE CONFIG ─────────────────────────────────────────────────────────────
+const MODULES = {
+  number: { title:'🔢 數字書寫練習', src:'number_practice.html',  color:'linear-gradient(135deg,#1A2A6C,#B21F1F)' },
+  letter: { title:'🔤 英文字母練習', src:'letter_practice.html',  color:'linear-gradient(135deg,#4A0080,#7B2FBE)' },
+  shape:  { title:'⭕ 形狀描繪練習', src:'shape_practice.html',   color:'linear-gradient(135deg,#0D4F4F,#1A9090)' },
+  reward: { title:'🦸 超人力霸王獎勵', src:'ultraman_reward.html', color:'linear-gradient(135deg,#7B3F00,#C67C3A)' },
+};
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function switchNav(tab){
+  document.getElementById('navHome').classList.toggle('active', tab==='home');
+  document.getElementById('navProgress').classList.toggle('active', tab==='progress');
+  document.getElementById('homeScreen').style.display = tab==='home'?'flex':'none';
+  document.getElementById('progressScreen').style.display = tab==='progress'?'flex':'none';
+}
+
+// ── MODULE OPEN/CLOSE ─────────────────────────────────────────────────────────
+function openModule(key){
+  const m = MODULES[key];
+  const frame = document.getElementById('moduleFrame');
+  const topbar = document.getElementById('moduleTopbar');
+  document.getElementById('moduleTitle').textContent = m.title;
+  topbar.style.background = m.color;
+  document.getElementById('moduleIframe').src = m.src;
+  frame.classList.remove('closing');
+  frame.classList.add('open');
+  // Update nav highlight
+  document.getElementById('navReward').classList.toggle('active', key==='reward');
+}
+
+function closeModule(){
+  const frame = document.getElementById('moduleFrame');
+  frame.classList.add('closing');
+  setTimeout(()=>{
+    frame.classList.remove('open','closing');
+    document.getElementById('moduleIframe').src='';
+    document.getElementById('navReward').classList.remove('active');
+    document.getElementById('navHome').classList.add('active');
+    updateStarDisplay();
+
+// Poll shared stars every 2s (fallback for iframe postMessage)
+setInterval(updateStarDisplay, 1000);
+window.addEventListener('focus', updateStarDisplay);
+window.addEventListener('visibilitychange', ()=>{ if(!document.hidden) updateStarDisplay(); });
+ // refresh shared stars
+  }, 300);
+}
+
+// ── STAR DISPLAY (shared state via localStorage) ──────────────────────────────
+// ── SHARED STATE ─────────────────────────────────────────────────────────────
+const APP_KEY='ultraman_app_state';
+function _loadApp(){try{const s=localStorage.getItem(APP_KEY);return s?JSON.parse(s):{}}catch(e){return {};}}
+function getSharedStars(){return parseInt(_loadApp().stars)||0;}
+
+function updateStarDisplay(){
+  const stars = parseInt(_loadApp().stars||0);
+  ['hStar0','hStar1','hStar2'].forEach((id,i)=>{
+    const el = document.getElementById(id);
+    if(i<stars){ el.textContent='⭐'; el.classList.add('on'); }
+    else{ el.textContent='☆'; el.classList.remove('on'); }
+  });
+  // reward card stars
+  const disp = document.getElementById('rewardStarsDisplay');
+  disp.innerHTML = [0,1,2].map(i=>
+    `<span class="card-reward-star">${i<stars?'⭐':'☆'}</span>`
+  ).join('');
+}
+
+// Listen for messages from iframes (modules can post star updates)
+window.addEventListener('message', e=>{
+  if(e.data && e.data.type==='starUpdate'){
+    updateStarDisplay();
+  }
+  if(e.data && e.data.type==='practiceComplete'){
+    showToast(e.data.msg||'練習完成！⭐');
+  }
+});
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+// Init
+updateStarDisplay();
+</script>
+</body>
+</html>

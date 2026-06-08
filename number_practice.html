@@ -1,0 +1,697 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap');
+  :root{
+    --blue:#2196F3;--blue-d:#1565C0;--green:#43A047;--green-l:#E8F5E9;
+    --orange:#FF7043;--purple:#7B1FA2;--purple-l:#F3E5F5;
+    --gold:#F9A825;--card:#fff;--shadow:0 4px 24px rgba(33,150,243,0.13);--radius:20px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Nunito',sans-serif;background:#B3D8A3;min-height:100vh;display:flex;flex-direction:column;}
+
+  /* TOP BAR */
+  .topbar{background:linear-gradient(135deg,#1565C0,#1E88E5,#42A5F5);padding:12px 16px 10px;display:flex;align-items:center;gap:8px;}
+  .back-btn{width:36px;height:36px;background:rgba(255,255,255,.18);border:none;border-radius:12px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .topbar-title{font-family:'Fredoka One',cursive;font-size:18px;color:#fff;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .mode-switcher{display:flex;align-items:center;gap:3px;background:rgba(255,255,255,.15);border-radius:14px;padding:3px;flex-shrink:0;}
+  .mode-switch-btn{width:38px;height:34px;border-radius:11px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;font-family:'Nunito',sans-serif;line-height:1.2;text-align:center;transition:all .22s cubic-bezier(.34,1.56,.64,1);color:rgba(255,255,255,.7);background:transparent;}
+  .mode-switch-btn .icon-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;}
+  .mode-switch-btn.active{background:#fff;color:var(--blue-d);box-shadow:0 2px 10px rgba(0,0,0,.18);transform:scale(1.05);}
+  .star-counter{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.18);border-radius:20px;padding:5px 10px;flex-shrink:0;}
+  .star-pip{font-size:16px;}
+
+  /* LEVEL BANNER */
+  .level-banner{margin:10px 14px 0;border-radius:16px;padding:10px 16px;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#1565C0,#1E88E5);box-shadow:var(--shadow);}
+  .level-banner.advanced{background:linear-gradient(135deg,#F57F17,#F9A825);}
+  .level-icon{font-size:24px;flex-shrink:0;}
+  .level-info{flex:1;}
+  .level-name{font-family:'Fredoka One',cursive;font-size:15px;color:#fff;line-height:1;}
+  .level-desc{font-size:11px;color:rgba(255,255,255,.8);font-weight:600;margin-top:2px;}
+  .level-progress-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:56px;}
+  .level-pct{font-family:'Fredoka One',cursive;font-size:13px;color:#fff;}
+  .level-mini-bar{width:56px;height:6px;background:rgba(255,255,255,.25);border-radius:6px;overflow:hidden;}
+  .level-mini-fill{height:100%;border-radius:6px;background:#fff;transition:width .5s;}
+
+  /* MASTERY GRID */
+  .mastery-section{margin:8px 14px 0;background:#E7D5E8;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+  .mastery-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px 6px;}
+  .mastery-title{font-family:'Fredoka One',cursive;font-size:13px;color:var(--blue-d);}
+  .mastery-hint{font-size:10px;color:#90A4AE;font-weight:600;}
+  .mastery-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:0 10px 10px;}
+  .mastery-cell{border-radius:9px;padding:5px 3px;text-align:center;border:2px solid #E7D5E8;background:#E7D5E8;position:relative;}
+  .mastery-cell .mc-char{font-family:'Fredoka One',cursive;font-size:16px;color:#90A4AE;line-height:1;}
+  .mastery-cell .mc-bar{height:3px;border-radius:3px;background:#E7D5E8;margin-top:3px;overflow:hidden;}
+  .mastery-cell .mc-fill{height:100%;border-radius:3px;transition:width .5s;background:linear-gradient(90deg,#FF7043,#FFD600,#43A047);}
+  .mastery-cell .mc-count{font-size:9px;font-weight:800;color:#90A4AE;margin-top:2px;}
+  .mastery-cell.mastered{border-color:#A5D6A7;background:var(--green-l);}
+  .mastery-cell.mastered .mc-char{color:var(--green);}
+  .mastery-cell.mastered .mc-count{color:#558B2F;}
+  .mastery-cell.mastered::after{content:'✓';position:absolute;top:-4px;right:-4px;width:13px;height:13px;background:var(--green);color:#fff;border-radius:50%;font-size:7px;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;font-weight:800;}
+
+  /* UNLOCK BANNER */
+  .unlock-banner{display:none;margin:8px 14px 0;border-radius:14px;padding:10px 14px;background:linear-gradient(135deg,#F57F17,#FFB300);box-shadow:0 4px 20px rgba(249,168,37,.4);align-items:center;gap:10px;animation:pulseGlow 2s infinite;}
+  .unlock-banner.show{display:flex;}
+  @keyframes pulseGlow{0%,100%{box-shadow:0 4px 20px rgba(249,168,37,.4)}50%{box-shadow:0 4px 32px rgba(249,168,37,.7)}}
+  .unlock-icon{font-size:26px;animation:bounce .8s infinite alternate;}
+  @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-4px)}}
+  .unlock-txt{flex:1;}
+  .unlock-title{font-family:'Fredoka One',cursive;font-size:14px;color:#fff;}
+  .unlock-sub{font-size:10px;color:rgba(255,255,255,.85);font-weight:600;margin-top:1px;}
+  .unlock-btn{background:#fff;color:#E65100;border:none;border-radius:10px;padding:7px 12px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:transform .15s;}
+  .unlock-btn:active{transform:scale(.96);}
+
+  /* ── ROUND HEADER：預設隱藏，進階模式或提交後才顯示 ── */
+  .round-header{
+    background:#E7D5E8;margin:8px 14px 0;border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:10px 14px;
+    display:none;   /* ← 預設隱藏 */
+  }
+  .round-header.visible{ display:block; }  /* 進階模式 or 有提交紀錄時顯示 */
+
+  .round-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  .round-label{font-family:'Fredoka One',cursive;font-size:13px;color:var(--blue-d);}
+  .round-badge{background:#E7D5E8;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:800;color:var(--blue);}
+  .round-track{display:flex;gap:3px;flex-wrap:wrap;}
+  .round-cell{flex:1;min-width:28px;height:30px;border-radius:9px;border:2px solid #E7D5E8;background:#E7D5E8;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px;transition:all .25s;cursor:pointer;}
+  .round-cell.current{border-color:var(--blue);background:#E7D5E8;transform:scale(1.05);}
+  .round-cell.pass{border-color:#A5D6A7;background:var(--green-l);}
+  .round-cell.fail{border-color:#FFCC80;background:#FFF3E0;}
+  .rc-num{font-family:'Fredoka One',cursive;font-size:11px;color:#90A4AE;line-height:1;}
+  .round-cell.current .rc-num{color:var(--blue);}
+  .round-cell.pass .rc-num{color:var(--green);}
+  .round-cell.fail .rc-num{color:var(--orange);}
+  .rc-icon{font-size:8px;line-height:1;}
+  .threshold-row{display:flex;align-items:center;gap:8px;margin-top:6px;}
+  .th-label{font-size:10px;font-weight:700;color:#90A4AE;white-space:nowrap;}
+  .th-bar-bg{flex:1;height:6px;background:#E7D5E8;border-radius:6px;overflow:hidden;position:relative;}
+  .th-bar-fill{height:100%;border-radius:6px;transition:width .5s;background:linear-gradient(90deg,#EF5350,#FF7043,#FFD600,#43A047);}
+  .th-marker{position:absolute;top:-3px;left:80%;width:2px;height:12px;background:var(--blue-d);border-radius:2px;}
+  .th-pct{font-size:11px;font-weight:800;min-width:32px;text-align:right;color:#90A4AE;}
+
+  /* CHAR SELECTOR */
+  .char-selector{padding:8px 14px 4px;}
+  .selector-label{font-size:11px;font-weight:700;color:#1565C0;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;}
+  .char-tabs{display:flex;gap:5px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none;}
+  .char-tabs::-webkit-scrollbar{display:none;}
+  .char-tab{flex-shrink:0;min-width:42px;height:42px;border-radius:13px;border:2.5px solid transparent;background:#E7D5E8;font-family:'Fredoka One',cursive;font-size:17px;color:#90A4AE;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.07);position:relative;padding:0 5px;}
+  .char-tab.active{background:#E7D5E8;color:#fff;border-color:#1565C0;transform:scale(1.08);box-shadow:0 4px 16px rgba(21,101,192,.35);}
+  .char-tab.pass::after{content:'✓';position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:#E7D5E8;color:#fff;border-radius:50%;font-size:7px;display:flex;align-items:center;justify-content:center;}
+  .char-tab.fail::after{content:'△';position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:#E7D5E8;color:#fff;border-radius:50%;font-size:7px;display:flex;align-items:center;justify-content:center;}
+
+  /* CANVAS CARD */
+  .practice-area{padding:6px 14px;}
+  .canvas-card{background:#E7D5E8;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+  .num-header{display:flex;align-items:center;padding:10px 14px 8px;gap:10px;border-bottom:2px dashed #E7D5E8;}
+  .big-char-display{font-family:'Fredoka One',cursive;font-size:54px;line-height:1;color:var(--blue);text-shadow:3px 3px 0 rgba(33,150,243,.15);min-width:60px;text-align:center;}
+  .big-char-display.zh-font{font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;font-weight:900;}
+  .char-info{flex:1;}
+  .char-sub1{font-family:'Fredoka One',cursive;font-size:20px;color:var(--purple);line-height:1;}
+  .char-sub1.zh-font{font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;font-weight:900;}
+  .char-sub2{font-size:12px;font-weight:700;color:#90A4AE;margin-top:2px;}
+  .char-dots{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap;}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--blue);opacity:.6;}
+  .mode-toggle{display:flex;flex-direction:column;gap:4px;align-items:flex-end;}
+  .trace-btn{padding:4px 9px;border-radius:10px;border:2px solid transparent;font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;cursor:pointer;transition:all .18s;white-space:nowrap;}
+  .trace-btn.active-mode{background:var(--blue);color:#fff;border-color:var(--blue-d);}
+  .trace-btn:not(.active-mode){background:#F5F5F5;color:#90A4AE;border-color:#E0E0E0;}
+
+  .guide-status{display:none;align-items:center;gap:8px;padding:7px 12px;background:linear-gradient(90deg,#7B1FA2,#9C27B0);}
+  .guide-status.visible{display:flex;}
+  .guide-status-txt{font-family:'Fredoka One',cursive;font-size:12px;color:#fff;flex:1;}
+  .guide-stroke-badge{background:rgba(255,255,255,.22);border-radius:20px;padding:3px 8px;font-size:10px;font-weight:800;color:#fff;}
+  .guide-skip-btn{background:rgba(255,255,255,.18);border:none;border-radius:8px;color:#fff;font-size:10px;font-weight:800;cursor:pointer;padding:4px 8px;font-family:'Nunito',sans-serif;}
+  .canvas-wrap{position:relative;background:#E7D5E8;}
+  .canvas-grid{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:0;}
+  .mizi-grid{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:1;display:none;}
+  .mizi-grid.visible{display:block;}
+  .ghost-char{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Fredoka One',cursive;font-size:150px;color:rgba(33,150,243,.06);pointer-events:none;z-index:0;user-select:none;line-height:1;transition:all .3s;}
+  .ghost-char.zh-mode{font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;font-weight:900;font-size:140px;}
+  canvas#guideCanvas{position:absolute;top:0;left:0;z-index:3;pointer-events:none;display:block;}
+  canvas#drawCanvas{display:block;width:100%;height:210px;cursor:crosshair;position:relative;z-index:2;touch-action:none;}
+  .ink-nib{position:absolute;z-index:10;pointer-events:none;display:none;width:26px;height:26px;}
+  .stroke-guide{position:absolute;top:6px;left:6px;display:flex;gap:4px;z-index:5;pointer-events:none;}
+  .stroke-dot{width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(33,150,243,.3);transition:background .3s,transform .2s;}
+  .stroke-dot.active-stroke{background:var(--orange);transform:scale(1.15);}
+  .stroke-dot.done-stroke{background:var(--green);}
+
+  .quality-bar-row{display:flex;align-items:center;gap:8px;padding:7px 14px;border-top:2px dashed #E7D5E8;}
+  .quality-label{font-size:11px;font-weight:700;color:var(--blue);white-space:nowrap;}
+  .quality-bar-bg{flex:1;height:8px;background:#E7D5E8;border-radius:8px;overflow:hidden;position:relative;}
+  .quality-bar-fill{height:100%;border-radius:8px;transition:width .4s,background .4s;}
+  .quality-bar-threshold{position:absolute;top:-2px;left:80%;width:2px;height:12px;background:rgba(33,150,243,.5);border-radius:2px;}
+  .quality-pct{font-size:12px;font-weight:800;min-width:32px;text-align:right;color:#90A4AE;}
+
+  /* CONTROLS */
+  .controls{display:flex;gap:5px;padding:6px 14px;}
+  .ctrl-btn{flex:1;height:44px;border-radius:13px;border:none;font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:all .18s;box-shadow:0 3px 10px rgba(0,0,0,.10);}
+  .ctrl-btn:active{transform:scale(.96);}
+  .btn-clear{background:#FFF3E0;color:var(--orange);border:2px solid #FFCC80;}
+  .btn-guide{background:linear-gradient(135deg,#7B1FA2,#AB47BC);color:#fff;border:2px solid #6A1B9A;box-shadow:0 4px 14px rgba(123,31,162,.35);position:relative;overflow:hidden;}
+  .btn-guide.animating{background:linear-gradient(135deg,#E53935,#EF5350);border-color:#C62828;}
+  .btn-hint{background:var(--purple-l);color:var(--purple);border:2px solid #CE93D8;}
+  .btn-check{flex:2;background:linear-gradient(135deg,#43A047,#2E7D32);color:#fff;border:2px solid #1B5E20;font-size:13px;box-shadow:0 4px 16px rgba(67,160,71,.35);}
+
+  /* BOTTOM */
+  .bottom-bar{padding:6px 14px 14px;margin-top:auto;}
+  .btn-exit{width:100%;height:44px;border-radius:14px;border:2.5px solid #B0BEC5;background:#fff;color:#607D8B;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 2px 8px rgba(0,0,0,.07);transition:all .18s;}
+  .btn-exit:hover{background:#ECEFF1;}
+  .btn-exit:active{transform:scale(.97);}
+
+  /* CONFIRM */
+  .confirm-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:250;display:none;align-items:flex-end;justify-content:center;}
+  .confirm-bg.show{display:flex;}
+  .confirm-sheet{background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:720px;padding:22px 18px 28px;animation:sheetUp .3s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .confirm-icon{font-size:38px;text-align:center;margin-bottom:8px;}
+  .confirm-title{font-family:'Fredoka One',cursive;font-size:20px;color:#37474F;text-align:center;margin-bottom:5px;}
+  .confirm-sub{font-size:12px;color:#90A4AE;text-align:center;font-weight:600;margin-bottom:16px;line-height:1.5;}
+  .confirm-btns{display:flex;gap:10px;}
+  .confirm-btn{flex:1;height:46px;border-radius:14px;border:none;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;}
+  .btn-stay{background:#E7D5E8;color:var(--blue-d);border:2px solid #90CAF9;}
+  .btn-leave{background:linear-gradient(135deg,#546E7A,#37474F);color:#fff;border:2px solid #263238;}
+
+  /* RESULT MODAL */
+  .score-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center;padding:14px;}
+  .score-modal-bg.show{display:flex;}
+  .score-modal{background:#fff;border-radius:22px;width:100%;max-width:720px;overflow:hidden;max-height:90vh;overflow-y:auto;animation:modalIn .4s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes modalIn{from{transform:scale(.7) translateY(40px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+  .modal-header{padding:16px 16px 10px;text-align:center;}
+  .modal-emoji{font-size:44px;line-height:1;margin-bottom:6px;}
+  .modal-title{font-family:'Fredoka One',cursive;font-size:22px;line-height:1.1;}
+  .modal-title.pass{color:var(--green);}
+  .modal-title.fail{color:var(--orange);}
+  .modal-sub{font-size:12px;font-weight:600;color:#90A4AE;margin-top:3px;}
+  .donut-wrap{display:flex;justify-content:center;margin:2px 0 8px;}
+  .donut-svg{width:96px;height:96px;}
+  .donut-bg{fill:none;stroke:#E7D5E8;stroke-width:12;}
+  .donut-fill{fill:none;stroke-width:12;stroke-linecap:round;transform:rotate(-90deg);transform-origin:48px 48px;transition:stroke-dasharray 1s cubic-bezier(.34,1.56,.64,1);}
+  .donut-pct{font-family:'Fredoka One',cursive;font-size:19px;fill:#1565C0;}
+  .donut-label{font-size:9px;fill:#90A4AE;font-family:'Nunito',sans-serif;}
+  .breakdown{padding:0 14px 4px;}
+  .breakdown-title{font-size:10px;font-weight:700;color:#90A4AE;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;}
+  .breakdown-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:8px;}
+  .bd-cell{border-radius:8px;padding:5px 3px;text-align:center;border:2px solid transparent;}
+  .bd-cell.b-pass{background:var(--green-l);border-color:#A5D6A7;}
+  .bd-cell.b-fail{background:#FFF3E0;border-color:#FFCC80;}
+  .bd-cell.b-empty{background:#F5F5F5;border-color:#E0E0E0;}
+  .bd-num{font-family:'Fredoka One',cursive;font-size:14px;line-height:1;}
+  .bd-cell.b-pass .bd-num{color:var(--green);}
+  .bd-cell.b-fail .bd-num{color:var(--orange);}
+  .bd-cell.b-empty .bd-num{color:#BDBDBD;}
+  .bd-q{font-size:9px;font-weight:700;margin-top:1px;}
+  .bd-cell.b-pass .bd-q{color:#558B2F;}
+  .bd-cell.b-fail .bd-q{color:#E65100;}
+
+  .mastery-update{background:var(--green-l);border-radius:10px;margin:0 14px 8px;padding:8px 12px;border:2px solid #A5D6A7;}
+  .mastery-update-title{font-family:'Fredoka One',cursive;font-size:12px;color:var(--green);margin-bottom:5px;}
+  .mastery-chips{display:flex;flex-wrap:wrap;gap:4px;}
+  .mastery-chip{background:#fff;border:2px solid #A5D6A7;border-radius:7px;padding:2px 7px;font-family:'Fredoka One',cursive;font-size:13px;color:var(--green);}
+  .unlock-modal{background:linear-gradient(135deg,#FFF8E1,#FFFDE7);border-radius:10px;margin:0 14px 8px;padding:10px;border:2px solid #FFD600;text-align:center;}
+  .unlock-modal-icon{font-size:28px;animation:starSpin .6s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes starSpin{from{transform:scale(0) rotate(-180deg)}to{transform:scale(1)}}
+  .unlock-modal-txt{font-family:'Fredoka One',cursive;font-size:14px;color:#E65100;margin-top:3px;}
+  .unlock-modal-sub{font-size:10px;color:#F9A825;font-weight:700;margin-top:2px;}
+  .tips-section{background:#FFF8E1;border-radius:10px;margin:0 14px 8px;padding:9px;}
+  .tips-title{font-family:'Fredoka One',cursive;font-size:12px;color:var(--orange);margin-bottom:5px;}
+  .tip-item{display:flex;align-items:flex-start;gap:6px;margin-bottom:4px;}
+  .tip-icon{width:18px;height:18px;border-radius:50%;background:var(--orange);color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+  .tip-text{font-size:11px;color:#5D4037;line-height:1.5;font-weight:600;}
+  .modal-btns{display:flex;gap:7px;padding:5px 14px 14px;}
+  .modal-btn{flex:1;height:42px;border-radius:12px;border:none;font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .18s;}
+  .modal-btn:active{transform:scale(.96);}
+  .btn-retry{background:#FFF3E0;color:var(--orange);border:2px solid #FFCC80;}
+  .btn-retry.hidden{display:none;}
+  .btn-adv{background:linear-gradient(135deg,#F57F17,#FFB300);color:#fff;border:2px solid #E65100;box-shadow:0 4px 12px rgba(249,168,37,.4);}
+  .btn-next{background:linear-gradient(135deg,#43A047,#2E7D32);color:#fff;border:2px solid #1B5E20;}
+
+  .switch-overlay{position:fixed;inset:0;background:#1565C0;z-index:400;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+  .switch-overlay.show{display:flex;}
+  .switch-overlay-icon{font-size:54px;animation:popIn .4s cubic-bezier(.34,1.56,.64,1);}
+  .switch-overlay-txt{font-family:'Fredoka One',cursive;font-size:21px;color:#fff;animation:popIn .4s .1s cubic-bezier(.34,1.56,.64,1) both;}
+  @keyframes popIn{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+  .starburst{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:300;display:none;}
+  .starburst.show{display:block;}
+  .burst-particle{position:absolute;font-size:20px;animation:burstFly 1.2s ease-out forwards;}
+  @keyframes burstFly{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3)}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="back-btn" onclick="confirmExit()">←</button>
+  <div class="topbar-title" id="topbarTitle">數字書寫練習</div>
+  <div class="mode-switcher">
+    <button class="mode-switch-btn active" id="btnNum" onclick="switchLang('num')">
+      <div class="icon-grid"><span>1</span><span>2</span><span>3</span><span>4</span></div>
+    </button>
+    <button class="mode-switch-btn" id="btnZh" onclick="switchLang('zh')">
+      <div class="icon-grid"><span>一</span><span>二</span><span>三</span><span>四</span></div>
+    </button>
+  </div>
+  <div class="star-counter">
+    <span class="star-pip" id="s1">☆</span>
+    <span class="star-pip" id="s2">☆</span>
+    <span class="star-pip" id="s3">☆</span>
+  </div>
+</div>
+
+<div class="level-banner" id="levelBanner">
+  <div class="level-icon" id="levelIcon">📚</div>
+  <div class="level-info">
+    <div class="level-name" id="levelName">基礎模組：0–9</div>
+    <div class="level-desc" id="levelDesc">練習每個數字達10次且良率≥80%，可解鎖進階！</div>
+  </div>
+  <div class="level-progress-wrap">
+    <div class="level-pct" id="levelPct">0/10</div>
+    <div class="level-mini-bar"><div class="level-mini-fill" id="levelMiniFill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<div class="mastery-section" id="masterySection">
+  <div class="mastery-header">
+    <div class="mastery-title" id="masteryTitle">各字掌握度</div>
+    <div class="mastery-hint">需10次 + 良率≥80%</div>
+  </div>
+  <div class="mastery-grid" id="masteryGrid"></div>
+</div>
+
+<div class="unlock-banner" id="unlockBanner">
+  <div class="unlock-icon">🔓</div>
+  <div class="unlock-txt">
+    <div class="unlock-title">進階模組已解鎖！</div>
+    <div class="unlock-sub" id="unlockSub">10–99 隨機出題挑戰</div>
+  </div>
+  <button class="unlock-btn" onclick="goAdvanced()">進入 →</button>
+</div>
+
+<!-- 本輪追蹤：預設隱藏 -->
+<div class="round-header" id="roundHeader">
+  <div class="round-top">
+    <div class="round-label" id="roundLabel">本輪進度</div>
+    <div class="round-badge" id="roundBadge">0 / 10</div>
+  </div>
+  <div class="round-track" id="roundTrack"></div>
+  <div class="threshold-row">
+    <div class="th-label">本輪良率</div>
+    <div class="th-bar-bg">
+      <div class="th-bar-fill" id="roundFill" style="width:0%"></div>
+      <div class="th-marker"></div>
+    </div>
+    <div class="th-pct" id="roundPct">0%</div>
+  </div>
+</div>
+
+<div class="char-selector" id="charSelectorWrap">
+  <div class="selector-label" id="selectorLabel">選擇數字</div>
+  <div class="char-tabs" id="charTabs"></div>
+</div>
+
+<div class="practice-area">
+  <div class="canvas-card">
+    <div class="num-header">
+      <div class="big-char-display" id="bigChar">0</div>
+      <div class="char-info">
+        <div class="char-sub1" id="charSub1">零</div>
+        <div class="char-sub2" id="charSub2">Zero</div>
+        <div class="char-dots" id="charDots"></div>
+      </div>
+      <div class="mode-toggle">
+        <button class="trace-btn active-mode" onclick="setTraceMode('trace')" id="btnTrace">✏️ 描摹</button>
+        <button class="trace-btn" onclick="setTraceMode('free')" id="btnFree">🖊️ 自由寫</button>
+      </div>
+    </div>
+    </div>
+    <div class="canvas-wrap" id="canvasWrap">
+      <svg class="canvas-grid" id="canvasGridSvg" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <defs><pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M25 0L0 0 0 25" fill="none" stroke="#E7D5E8" stroke-width="0.5"/></pattern></defs>
+        <rect width="100" height="100" fill="url(#grid)" opacity=".8"/>
+        <line x1="50" y1="0" x2="50" y2="100" stroke="#BBDEFB" stroke-width=".5" stroke-dasharray="4 3"/>
+        <line x1="0" y1="50" x2="100" y2="50" stroke="#BBDEFB" stroke-width=".5" stroke-dasharray="4 3"/>
+      </svg>
+      <svg class="mizi-grid" id="miziGrid" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <rect width="100" height="100" fill="none" stroke="#F8BBD0" stroke-width=".6"/>
+        <line x1="50" y1="0" x2="50" y2="100" stroke="#F8BBD0" stroke-width=".6"/>
+        <line x1="0" y1="50" x2="100" y2="50" stroke="#F8BBD0" stroke-width=".6"/>
+        <line x1="0" y1="0" x2="100" y2="100" stroke="#FCE4EC" stroke-width=".5" stroke-dasharray="3 3"/>
+        <line x1="100" y1="0" x2="0" y2="100" stroke="#FCE4EC" stroke-width=".5" stroke-dasharray="3 3"/>
+      </svg>
+      <div class="ghost-char" id="ghostChar">0</div>
+      <div class="stroke-guide" id="strokeGuide"></div>
+      <canvas id="guideCanvas"></canvas>
+      <svg class="ink-nib" id="inkNib" viewBox="0 0 28 28">
+        <rect x="10" y="2" width="8" height="16" rx="2" fill="#7B1FA2"/>
+        <polygon points="10,18 18,18 14,26" fill="#5C1070"/>
+        <rect x="12" y="4" width="2" height="8" rx="1" fill="rgba(255,255,255,0.35)"/>
+        <circle cx="14" cy="26" r="2.5" fill="#FF7043"/>
+      </svg>
+      <canvas id="drawCanvas"></canvas>
+    </div>
+    <div class="quality-bar-row">
+      <div class="quality-label">這個字</div>
+      <div class="quality-bar-bg">
+        <div class="quality-bar-fill" id="qualityFill" style="width:0%;background:#E7D5E8;"></div>
+        <div class="quality-bar-threshold"></div>
+      </div>
+      <div class="quality-pct" id="qualityPct">0%</div>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="ctrl-btn btn-clear" onclick="clearCanvas()">🗑️ 清除</button>
+  <button class="ctrl-btn btn-hint" onclick="showHint()">💡 提示</button>
+  <button class="ctrl-btn btn-check" onclick="submitCurrent()">✅ 提交</button>
+</div>
+
+<div class="bottom-bar">
+  <button class="btn-exit" onclick="confirmExit()">🏠 返回主選單</button>
+</div>
+
+<div class="confirm-bg" id="confirmBg" onclick="cancelExit(event)">
+  <div class="confirm-sheet">
+    <div class="confirm-icon">🚪</div>
+    <div class="confirm-title">要離開練習嗎？</div>
+    <div class="confirm-sub">目前的練習進度還沒存檔！<br>確定要離開嗎？</div>
+    <div class="confirm-btns">
+      <button class="confirm-btn btn-stay" onclick="cancelExit()">✏️ 繼續練習</button>
+      <button class="confirm-btn btn-leave" onclick="doExit()">🚪 離開</button>
+    </div>
+  </div>
+</div>
+
+<div class="score-modal-bg" id="scoreModalBg">
+  <div class="score-modal">
+    <div class="modal-header">
+      <div class="modal-emoji" id="modalEmoji">🌟</div>
+      <div class="modal-title" id="modalTitle">太棒了！</div>
+      <div class="modal-sub" id="modalSub">完成一輪！</div>
+    </div>
+    <div class="donut-wrap">
+      <svg class="donut-svg" viewBox="0 0 96 96">
+        <circle class="donut-bg" cx="48" cy="48" r="36"/>
+        <circle class="donut-fill" id="donutFill" cx="48" cy="48" r="36" stroke="#43A047" stroke-dasharray="0 226"/>
+        <text class="donut-pct" id="donutPct" x="48" y="45" text-anchor="middle" dominant-baseline="middle">0%</text>
+        <text class="donut-label" x="48" y="58" text-anchor="middle">良率</text>
+      </svg>
+    </div>
+    <div class="breakdown">
+      <div class="breakdown-title">每個字的表現</div>
+      <div class="breakdown-grid" id="breakdownGrid"></div>
+    </div>
+    <div id="masteryUpdateSection" style="display:none">
+      <div class="mastery-update">
+        <div class="mastery-update-title">⬆️ 掌握度提升！</div>
+        <div class="mastery-chips" id="masteryChips"></div>
+      </div>
+    </div>
+    <div id="unlockModalSection" style="display:none">
+      <div class="unlock-modal">
+        <div class="unlock-modal-icon">🔓</div>
+        <div class="unlock-modal-txt">進階模組解鎖！</div>
+        <div class="unlock-modal-sub" id="unlockModalSub">可挑戰 10–99 的隨機數字！</div>
+      </div>
+    </div>
+    <div id="tipsSection" style="display:none">
+      <div class="tips-section">
+        <div class="tips-title">💪 需要加強的地方</div>
+        <div id="tipsList"></div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn btn-retry" id="btnRetry" onclick="startRetry()">🔄 重練</button>
+      <button class="modal-btn btn-adv" id="btnGoAdv" style="display:none" onclick="closeModal();goAdvanced()">⬆️ 進階</button>
+      <button class="modal-btn btn-next" onclick="startNewRound()">▶ 再一輪</button>
+    </div>
+  </div>
+</div>
+
+<div class="switch-overlay" id="switchOverlay">
+  <div class="switch-overlay-icon" id="switchIcon">🔄</div>
+  <div class="switch-overlay-txt" id="switchTxt">切換中…</div>
+</div>
+<div class="starburst" id="starburst"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+function numStrokes(n){const map={'0':[[[ .50,.10],[.65,.11],[.78,.22],[.83,.50],[.78,.78],[.65,.89],[.50,.90],[.35,.89],[.22,.78],[.17,.50],[.22,.22],[.35,.11],[.50,.10]]],'1':[[[.42,.14],[.50,.09],[.50,.88]]],'2':[[[.28,.30],[.50,.13],[.72,.30],[.60,.55],[.26,.88],[.74,.88]]],'3':[[[.28,.18],[.68,.18],[.70,.40],[.50,.50]],[[.50,.50],[.76,.62],[.70,.84],[.26,.82]]],'4':[[[.64,.11],[.64,.89]],[[.64,.11],[.20,.64],[.80,.64]]],'5':[[[.72,.12],[.28,.12],[.24,.46],[.56,.42],[.75,.64],[.60,.86],[.28,.84]]],'6':[[[.68,.13],[.34,.20],[.18,.54],[.32,.84],[.58,.87],[.76,.64],[.40,.44],[.20,.66]]],'7':[[[.22,.14],[.78,.14],[.44,.88]]],'8':[[[.50,.11],[.74,.24],[.62,.44],[.50,.50],[.26,.66],[.36,.87],[.64,.87],[.74,.66],[.50,.50],[.38,.44],[.26,.24],[.50,.11]]],'9':[[[.50,.11],[.76,.24],[.78,.38],[.60,.60],[.22,.40],[.34,.17],[.62,.13],[.78,.36],[.74,.68],[.50,.91]]]};return map[String(n)]||[[[.2,.5],[.8,.5]]];}
+function zhStrokes(ch){const map={'一':[[[.15,.50],[.85,.50]]],'二':[[[.20,.35],[.80,.35]],[[.15,.65],[.85,.65]]],'三':[[[.20,.25],[.80,.25]],[[.25,.50],[.75,.50]],[[.15,.75],[.85,.75]]],'四':[[[.20,.15],[.20,.85],[.80,.85],[.80,.15],[.20,.15]],[[.20,.50],[.80,.50]]],'五':[[[.20,.25],[.80,.25]],[[.50,.25],[.50,.65]],[[.15,.65],[.85,.65]],[[.20,.85],[.80,.85]]],'六':[[[.50,.12],[.50,.35]],[[.30,.55],[.50,.35],[.70,.55]],[[.20,.75],[.80,.75]],[[.20,.75],[.20,.88]],[[.80,.75],[.80,.88]]],'七':[[[.20,.35],[.80,.35]],[[.50,.15],[.50,.88]]],'八':[[[.50,.20],[.25,.80]],[[.50,.20],[.75,.80]]],'九':[[[.25,.25],[.75,.25],[.75,.75],[.50,.88]],[[.50,.50],[.25,.75]]],'十':[[[.50,.15],[.50,.85]],[[.20,.50],[.80,.50]]]};return map[ch]||[[[.2,.5],[.8,.5]]];}
+const ZH_TENS=['','十','二十','三十','四十','五十','六十','七十','八十','九十'];
+const ZH_UNITS=['','一','二','三','四','五','六','七','八','九'];
+function toZh(n){if(n<=10)return['零','一','二','三','四','五','六','七','八','九','十'][n];const t=Math.floor(n/10),u=n%10;return(t===1?'十':ZH_TENS[t])+(u===0?'':ZH_UNITS[u]);}
+
+const mastery={num:{},zh:{}};
+['0','1','2','3','4','5','6','7','8','9'].forEach(c=>mastery.num[c]={count:0,pass:0});
+['一','二','三','四','五','六','七','八','九','十'].forEach(c=>mastery.zh[c]={count:0,pass:0});
+function isMastered(l,c){const m=mastery[l][c];return m&&m.count>=10&&(m.pass/m.count)>=0.8;}
+function basicMasteredCount(l){const chars=l==='num'?['0','1','2','3','4','5','6','7','8','9']:['一','二','三','四','五','六','七','八','九','十'];return chars.filter(c=>isMastered(l,c)).length;}
+function isAdvancedUnlocked(l){return basicMasteredCount(l)>=10;}
+
+let lang='num',level='basic',currentQueue=[],currentIdx=0,results=[];
+let traceMode='trace',isDrawing=false,isGuiding=false,guideAnimId=null,guideSpeed=0.6,totalStrokePts=0;;
+
+function buildBasicQueue(){
+  if(lang==='num')return ['0','1','2','3','4','5','6','7','8','9'].map((c,i)=>({ch:c,sub1:['零','一','二','三','四','五','六','七','八','九'][i],sub2:['Zero','One','Two','Three','Four','Five','Six','Seven','Eight','Nine'][i],strokes:numStrokes(c)}));
+  return ['一','二','三','四','五','六','七','八','九','十'].map((c,i)=>({ch:c,sub1:String(i+1),sub2:`數字 ${i+1}`,strokes:zhStrokes(c)}));
+}
+function buildAdvancedQueue(){
+  const pool=Array.from({length:90},(_,i)=>i+10),picked=pool.sort(()=>Math.random()-.5).slice(0,10);
+  picked.sort((a,b)=>a-b);
+  return picked.map(n=>{const s=String(n);
+    if(lang==='num')return{ch:s,sub1:toZh(n),sub2:`Arabic ${n}`,strokes:[numStrokes(s[0])[0]||[[.2,.5],[.8,.5]],numStrokes(s[1])[0]||[[.2,.5],[.8,.5]]]};
+    const zh=toZh(n);return{ch:zh,sub1:String(n),sub2:`數字 ${n}`,strokes:[[[.20,.50],[.80,.50]]]};
+  });
+}
+
+const canvas=document.getElementById('drawCanvas'),ctx=canvas.getContext('2d');
+ctx.lineWidth=6;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#1565C0';
+const gCanvas=document.getElementById('guideCanvas'),gCtx=gCanvas.getContext('2d');
+function initCanvas(){const w=canvas.parentElement.getBoundingClientRect().width||340;canvas.width=w;canvas.height=926;gCanvas.width=w;gCanvas.height=926;gCanvas.style.width=w+'px';gCanvas.style.height='926px';}
+function getPos(e){const r=canvas.getBoundingClientRect(),s=e.touches?e.touches[0]:e;return{x:(s.clientX-r.left)*(canvas.width/r.width),y:(s.clientY-r.top)*(canvas.height/r.height)};}
+canvas.addEventListener('mousedown',e=>{if(isGuiding)return;isDrawing=true;const p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);});
+canvas.addEventListener('mousemove',e=>{if(!isDrawing||isGuiding)return;const p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke();totalStrokePts++;updateQuality();});
+canvas.addEventListener('mouseup',()=>isDrawing=false);canvas.addEventListener('mouseleave',()=>isDrawing=false);
+canvas.addEventListener('touchstart',e=>{e.preventDefault();if(isGuiding)return;isDrawing=true;const p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);},{passive:false});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!isDrawing||isGuiding)return;const p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke();totalStrokePts++;updateQuality();},{passive:false});
+canvas.addEventListener('touchend',()=>isDrawing=false);
+function updateQuality(){const q=Math.min(100,Math.round(totalStrokePts*1.2));const fill=document.getElementById('qualityFill'),pct=document.getElementById('qualityPct');fill.style.width=q+'%';fill.style.background=q>=80?'linear-gradient(90deg,#66BB6A,#43A047)':q>=50?'linear-gradient(90deg,#FFB74D,#FF7043)':'linear-gradient(90deg,#EF9A9A,#E53935)';pct.textContent=q+'%';pct.style.color=q>=80?'#2E7D32':q>=50?'#E65100':'#B71C1C';}
+function clearCanvas(){ctx.clearRect(0,0,canvas.width,canvas.height);gCtx.clearRect(0,0,gCanvas.width,gCanvas.height);totalStrokePts=0;document.getElementById('qualityFill').style.width='0%';document.getElementById('qualityFill').style.background='#E7D5E8';document.getElementById('qualityPct').textContent='0%';document.getElementById('qualityPct').style.color='#90A4AE';}
+function showHint(){const item=currentQueue[currentIdx];ctx.save();ctx.globalAlpha=.15;const isZh=lang==='zh';ctx.font=`${isZh?'900':'bold'} ${canvas.height*.65}px ${isZh?"'Noto Sans TC',sans-serif":"'Fredoka One',cursive"}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#1565C0';ctx.fillText(item.ch,canvas.width/2,canvas.height/2);ctx.restore();setTimeout(()=>ctx.clearRect(0,0,canvas.width,canvas.height),2000);}
+function updateSpeed(v){const i=parseInt(v)-1;guideSpeed=SPEED_VALUES[i];}
+
+function catmullRom(knots,sps=20){if(knots.length<2)return knots.map(([x,y])=>({x,y}));const pts=[],k=[knots[0],...knots,knots[knots.length-1]];for(let i=1;i<k.length-2;i++){const[p0x,p0y]=k[i-1],[p1x,p1y]=k[i],[p2x,p2y]=k[i+1],[p3x,p3y]=k[i+2];for(let s=0;s<=sps;s++){const t=s/sps,t2=t*t,t3=t2*t;pts.push({x:.5*((2*p1x)+(-p0x+p2x)*t+(2*p0x-5*p1x+4*p2x-p3x)*t2+(-p0x+3*p1x-3*p2x+p3x)*t3),y:.5*((2*p1y)+(-p0y+p2y)*t+(2*p0y-5*p1y+4*p2y-p3y)*t2+(-p0y+3*p1y-3*p2y+p3y)*t3)});}}return pts;}
+const curvesCache={};
+function getCurves(){const key=`${lang}_${level}_${currentIdx}_${currentQueue[currentIdx]?.ch}`;if(curvesCache[key])return curvesCache[key];curvesCache[key]=(currentQueue[currentIdx]?.strokes||[]).map(k=>catmullRom(k));return curvesCache[key];}
+function toggleGuide(){if(isGuiding)skipGuide();else startGuide();}
+function startGuide(){stopGuide();clearCanvas();isGuiding=true;document.getElementById('btnGuide').textContent='⏹️ 停止';document.getElementById('btnGuide').classList.add('animating');document.getElementById('guideStatus').classList.add('visible');document.getElementById('speedRow').classList.add('visible');document.getElementById('inkNib').style.display='block';canvas.style.pointerEvents='none';animateStroke(0);}
+function skipGuide(){stopGuide();}
+function stopGuide(){if(guideAnimId){cancelAnimationFrame(guideAnimId);guideAnimId=null;}isGuiding=false;gCtx.clearRect(0,0,gCanvas.width,gCanvas.height);document.getElementById('btnGuide').textContent='👁 導引';document.getElementById('btnGuide').classList.remove('animating');document.getElementById('guideStatus').classList.remove('visible');document.getElementById('speedRow').classList.remove('visible');document.getElementById('inkNib').style.display='none';canvas.style.pointerEvents='auto';document.querySelectorAll('.stroke-dot').forEach((d,i)=>{d.classList.remove('active-stroke','done-stroke');if(i===0)d.classList.add('active-stroke');});}
+function animateStroke(sIdx){const curves=getCurves(),total=curves.length;if(sIdx>=total){setTimeout(()=>stopGuide(),500);return;}const curve=curves[sIdx],W=gCanvas.width,H=gCanvas.height;document.getElementById('guideStatusTxt').textContent=total===1?'✍️ 示範書寫中…':`✍️ 第 ${sIdx+1} 筆示範中…`;document.getElementById('guideStrokeBadge').textContent=`筆畫 ${sIdx+1}/${total}`;document.querySelectorAll('.stroke-dot').forEach((d,i)=>{d.classList.remove('active-stroke','done-stroke');if(i<sIdx)d.classList.add('done-stroke');else if(i===sIdx)d.classList.add('active-stroke');});gCtx.clearRect(0,0,W,H);drawGhost(curve,W,H);const drawn=[curve[0]];let cf=0;positionNib(curve[0].x*W,curve[0].y*H);drawStartCircle(curve[0].x*W,curve[0].y*H,sIdx+1);function frame(){if(!isGuiding)return;cf+=guideSpeed;if(cf>=curve.length-1)cf=curve.length-1;const ii=Math.floor(cf);while(drawn.length<=ii)drawn.push(curve[drawn.length]);gCtx.clearRect(0,0,W,H);drawGhost(curve,W,H);drawTrail(drawn,W,H);drawStartCircle(curve[0].x*W,curve[0].y*H,sIdx+1);const cur=curve[Math.min(ii,curve.length-1)],nxt=curve[Math.min(ii+1,curve.length-1)];positionNib(cur.x*W,cur.y*H,nxt.x*W-cur.x*W,nxt.y*H-cur.y*H);drawInkDrop(cur.x*W,cur.y*H);if(cf<curve.length-1)guideAnimId=requestAnimationFrame(frame);else setTimeout(()=>{if(!isGuiding)return;setTimeout(()=>{if(!isGuiding)return;animateStroke(sIdx+1);},600);},100);}guideAnimId=requestAnimationFrame(frame);}
+function drawGhost(c,W,H){gCtx.save();gCtx.globalAlpha=.09;gCtx.strokeStyle='#7B1FA2';gCtx.lineWidth=12;gCtx.lineCap='round';gCtx.lineJoin='round';gCtx.beginPath();c.forEach((p,i)=>i?gCtx.lineTo(p.x*W,p.y*H):gCtx.moveTo(p.x*W,p.y*H));gCtx.stroke();gCtx.restore();}
+function drawTrail(pts,W,H){if(pts.length<2)return;gCtx.save();gCtx.lineCap='round';gCtx.lineJoin='round';for(let i=1;i<pts.length;i++){const t=i/pts.length,wt=3+6*Math.sin(t*Math.PI);gCtx.lineWidth=Math.max(2,wt);const r=Math.round(90+(33-90)*t),g=Math.round(20+(150-20)*t),b=Math.round(180+(243-180)*t);gCtx.strokeStyle=`rgba(${r},${g},${b},0.88)`;gCtx.beginPath();gCtx.moveTo(pts[i-1].x*W,pts[i-1].y*H);gCtx.lineTo(pts[i].x*W,pts[i].y*H);gCtx.stroke();}gCtx.restore();}
+function drawInkDrop(x,y){gCtx.save();const g=gCtx.createRadialGradient(x,y,1,x,y,8);g.addColorStop(0,'rgba(255,112,67,.95)');g.addColorStop(.5,'rgba(255,112,67,.4)');g.addColorStop(1,'rgba(255,112,67,0)');gCtx.fillStyle=g;gCtx.beginPath();gCtx.arc(x,y,8,0,Math.PI*2);gCtx.fill();gCtx.fillStyle='#FF7043';gCtx.beginPath();gCtx.arc(x,y,3,0,Math.PI*2);gCtx.fill();gCtx.restore();}
+function drawStartCircle(x,y,n){gCtx.save();gCtx.strokeStyle='rgba(255,112,67,.4)';gCtx.lineWidth=2;gCtx.beginPath();gCtx.arc(x,y,13,0,Math.PI*2);gCtx.stroke();gCtx.fillStyle='#FF7043';gCtx.globalAlpha=.92;gCtx.beginPath();gCtx.arc(x,y,9,0,Math.PI*2);gCtx.fill();gCtx.globalAlpha=1;gCtx.fillStyle='#fff';gCtx.font='bold 10px Nunito,sans-serif';gCtx.textAlign='center';gCtx.textBaseline='middle';gCtx.fillText(n,x,y);gCtx.restore();}
+function positionNib(x,y,dx,dy){const nib=document.getElementById('inkNib'),cr=gCanvas.getBoundingClientRect();nib.style.left=(x*(cr.width/gCanvas.width)-14)+'px';nib.style.top=(y*(cr.height/gCanvas.height)-28)+'px';if(dx!==undefined&&(Math.abs(dx)+Math.abs(dy))>0.001)nib.style.transform=`rotate(${Math.atan2(dy,dx)*180/Math.PI-90}deg)`;else nib.style.transform='';}
+
+// ── SUBMIT ────────────────────────────────────────────────────────────────────
+function submitCurrent(){
+  if(totalStrokePts<3){document.getElementById('btnCheck').style.background='linear-gradient(135deg,#E53935,#EF5350)';setTimeout(()=>document.getElementById('btnCheck').style.background='',600);return;}
+  const q=Math.min(100,Math.round(totalStrokePts*1.2)),passed=q>=80;
+  const ch=currentQueue[currentIdx].ch;
+  results[currentIdx]={ch,quality:q,passed};
+  if(level==='basic'){if(!mastery[lang][ch])mastery[lang][ch]={count:0,pass:0};mastery[lang][ch].count++;if(passed)mastery[lang][ch].pass++;}
+
+  // ★ 提交後顯示本輪追蹤列
+  showRoundHeader();
+  updateRoundUI();
+  if(level==='basic')updateTabs();updateMasteryGrid();savePractice();
+
+  const filled=results.filter(r=>r!==null).length;
+  if(filled>=currentQueue.length){setTimeout(()=>showFinalModal(),300);return;}
+  const next=results.findIndex((r,i)=>r===null&&i!==currentIdx);
+  if(next!==-1){clearCanvas();selectItem(next);}else setTimeout(()=>showFinalModal(),300);
+}
+
+// ── 控制本輪追蹤列的顯示 ────────────────────────────────────────────────────
+function showRoundHeader(){document.getElementById('roundHeader').classList.add('visible');}
+function hideRoundHeader(){document.getElementById('roundHeader').classList.remove('visible');}
+
+// ── FINAL MODAL ───────────────────────────────────────────────────────────────
+const PASS_PRAISE=['寫得非常好！','超級棒！','你真的很厲害！','寫字小達人！'];
+const FAIL_ENC=['加油！你一定可以的！','繼續練習，進步很快！','沒關係，再試一次！'];
+function showFinalModal(){
+  const n=currentQueue.length,passed=results.filter(r=>r&&r.passed).length,rate=Math.round((passed/n)*100),starEarned=rate>=80;
+  const failedItems=results.filter(r=>r&&!r.passed);
+  const circ=2*Math.PI*36;
+  document.getElementById('donutFill').setAttribute('stroke-dasharray',`0 ${circ}`);
+  document.getElementById('donutFill').setAttribute('stroke',starEarned?'#43A047':'#FF7043');
+  document.getElementById('donutPct').textContent=rate+'%';document.getElementById('donutPct').style.fill=starEarned?'#2E7D32':'#E65100';
+  setTimeout(()=>document.getElementById('donutFill').setAttribute('stroke-dasharray',`${(rate/100)*circ} ${circ}`),100);
+  document.getElementById('modalEmoji').textContent=starEarned?'🌟':'😅';
+  document.getElementById('modalTitle').textContent=starEarned?PASS_PRAISE[Math.floor(Math.random()*PASS_PRAISE.length)]:FAIL_ENC[Math.floor(Math.random()*FAIL_ENC.length)];
+  document.getElementById('modalTitle').className='modal-title '+(starEarned?'pass':'fail');
+  document.getElementById('modalSub').textContent=`${level==='advanced'?'進階':'基礎'}模組・良率 ${rate}%${starEarned?' ⭐':''}`;
+  const grid=document.getElementById('breakdownGrid');grid.innerHTML='';
+  for(let i=0;i<10;i++){const r=results[i];const cell=document.createElement('div');cell.className='bd-cell '+(r?(r.passed?'b-pass':'b-fail'):'b-empty');cell.innerHTML=`<div class="bd-num">${r?r.ch:'·'}</div><div class="bd-q">${r?r.quality+'%':''}</div>`;grid.appendChild(cell);}
+  const masteryUpdates=[];
+  if(level==='basic')results.forEach(r=>{if(r&&mastery[lang][r.ch]&&mastery[lang][r.ch].count===10&&isMastered(lang,r.ch))masteryUpdates.push(r.ch);});
+  const mastSec=document.getElementById('masteryUpdateSection');
+  if(masteryUpdates.length>0){mastSec.style.display='block';const chips=document.getElementById('masteryChips');chips.innerHTML='';masteryUpdates.forEach(c=>{const chip=document.createElement('div');chip.className='mastery-chip';chip.textContent=c+' ✓';chips.appendChild(chip);});}else mastSec.style.display='none';
+  const justUnlocked=isAdvancedUnlocked(lang)&&level==='basic';
+  document.getElementById('unlockModalSection').style.display=justUnlocked?'block':'none';
+  if(justUnlocked)document.getElementById('unlockModalSub').textContent=lang==='num'?'可挑戰 10–99 隨機數字！':'可挑戰 十一–九十九 隨機國字！';
+  const tipsSec=document.getElementById('tipsSection');
+  if(!starEarned&&failedItems.length){tipsSec.style.display='block';const tl=document.getElementById('tipsList');tl.innerHTML='';addTip(tl,'①','「'+failedItems.map(r=>r.ch).join('、')+'」需要再練習');addTip(tl,'💡','可先自己練習，再自己練習');}else tipsSec.style.display='none';
+  document.getElementById('btnRetry').className='modal-btn btn-retry'+(failedItems.length&&!starEarned?'':' hidden');
+  document.getElementById('btnGoAdv').style.display=justUnlocked?'':'none';
+  document.getElementById('scoreModalBg').classList.add('show');
+  updateLevelBanner();
+  savePractice();
+  if(starEarned){setTimeout(fireBurst,200);directAwardStar();}
+}
+function addTip(c,icon,text){const d=document.createElement('div');d.className='tip-item';d.innerHTML=`<div class="tip-icon">${icon}</div><div class="tip-text">${text}</div>`;c.appendChild(d);}
+function closeModal(){document.getElementById('scoreModalBg').classList.remove('show');}
+function startRetry(){const failed=results.map((r,i)=>r&&!r.passed?i:null).filter(i=>i!==null);const failedQueue=failed.map(i=>currentQueue[i]);closeModal();currentQueue=failedQueue;results=Array(currentQueue.length).fill(null);currentIdx=0;hideRoundHeader();buildRoundTrack();clearCanvas();selectItem(0);updateRoundUI();}
+function startNewRound(){closeModal();if(level==='basic'){results=Array(10).fill(null);currentIdx=0;hideRoundHeader();if(lang==='num')buildTabs();buildRoundTrack();clearCanvas();selectItem(0);}else goAdvanced();updateRoundUI();}
+
+function goAdvanced(){if(isGuiding)stopGuide();level='advanced';currentQueue=buildAdvancedQueue();results=Array(10).fill(null);currentIdx=0;document.getElementById('charSelectorWrap').style.display='none';document.getElementById('masterySection').style.display='none';updateLevelBanner();buildRoundTrack();
+  // 進階模式直接顯示本輪追蹤
+  showRoundHeader();
+  clearCanvas();selectItem(0);updateRoundUI();}
+
+function goBasic(){if(isGuiding)stopGuide();level='basic';currentQueue=buildBasicQueue();results=Array(currentQueue.length).fill(null);currentIdx=0;document.getElementById('charSelectorWrap').style.display='';document.getElementById('masterySection').style.display='';hideRoundHeader();updateLevelBanner();buildTabs();buildRoundTrack();clearCanvas();selectItem(0);updateRoundUI();}
+
+function switchLang(l){
+  if(l===lang)return;if(isGuiding)stopGuide();
+  const overlay=document.getElementById('switchOverlay');
+  document.getElementById('switchIcon').textContent=l==='num'?'🔢':'🀄';
+  document.getElementById('switchTxt').textContent=l==='num'?'切換到數字練習':'切換到國字練習';
+  overlay.classList.add('show');
+  setTimeout(()=>{
+    lang=l;level='basic';
+    document.getElementById('btnNum').classList.toggle('active',l==='num');
+    document.getElementById('btnZh').classList.toggle('active',l==='zh');
+    document.getElementById('topbarTitle').textContent=l==='num'?'數字書寫練習':'國字書寫練習';
+    const isZh=l==='zh';
+    document.getElementById('miziGrid').classList.toggle('visible',isZh);
+    document.getElementById('canvasGridSvg').style.display=isZh?'none':'block';
+    document.getElementById('ghostChar').classList.toggle('zh-mode',isZh);
+    document.getElementById('bigChar').classList.toggle('zh-font',isZh);
+    document.getElementById('charSub1').classList.toggle('zh-font',isZh);
+    document.getElementById('charSelectorWrap').style.display='';
+    document.getElementById('masterySection').style.display='';
+    hideRoundHeader();
+    currentQueue=buildBasicQueue();results=Array(currentQueue.length).fill(null);currentIdx=0;
+    updateLevelBanner();updateMasteryGrid();buildTabs();buildRoundTrack();clearCanvas();selectItem(0);updateRoundUI();
+    overlay.classList.remove('show');
+  },500);
+}
+
+function updateLevelBanner(){
+  const advanced=isAdvancedUnlocked(lang);
+  const banner=document.getElementById('levelBanner');
+  banner.className='level-banner'+(level==='advanced'?' advanced':'');
+  if(level==='basic'){const count=basicMasteredCount(lang);document.getElementById('levelIcon').textContent='📝';document.getElementById('levelName').textContent=lang==='num'?'基礎模組：0–9':'基礎模組：一–十';document.getElementById('levelDesc').textContent=`已掌握 ${count}/10 個字，全部達標可解鎖進階！`;document.getElementById('levelPct').textContent=`${count}/10`;document.getElementById('levelMiniFill').style.width=`${count*10}%`;document.getElementById('unlockBanner').classList.toggle('show',advanced);if(advanced)document.getElementById('unlockSub').textContent=lang==='num'?'10–99 隨機出題挑戰':'十一–九十九 隨機出題挑戰';}
+  else{document.getElementById('levelIcon').textContent='📝';document.getElementById('levelName').textContent=lang==='num'?'進階模組：10–99':'進階模組：十一–九十九';document.getElementById('levelDesc').textContent='隨機10題・每輪不重複';document.getElementById('levelPct').textContent='隨機';document.getElementById('levelMiniFill').style.width='100%';document.getElementById('unlockBanner').classList.remove('show');}
+}
+function updateMasteryGrid(){
+  const grid=document.getElementById('masteryGrid');grid.innerHTML='';
+  const chars=lang==='num'?['0','1','2','3','4','5','6','7','8','9']:['一','二','三','四','五','六','七','八','九','十'];
+  document.getElementById('masteryTitle').textContent=lang==='num'?'各數字掌握度':'各國字掌握度';
+  chars.forEach(c=>{const m=mastery[lang][c]||{count:0,pass:0};const done=isMastered(lang,c);const cell=document.createElement('div');cell.className='mastery-cell'+(done?' mastered':'');cell.innerHTML=`<div class="mc-char">${c}</div><div class="mc-bar"><div class="mc-fill" style="width:${Math.min(m.count/10*100,100)}%"></div></div><div class="mc-count">${m.count}/10次</div>`;grid.appendChild(cell);});
+}
+
+function setTraceMode(m){traceMode=m;document.getElementById('btnTrace').className='trace-btn'+(m==='trace'?' active-mode':'');document.getElementById('btnFree').className='trace-btn'+(m==='free'?' active-mode':'');document.getElementById('ghostChar').style.opacity=m==='trace'?'1':'0';clearCanvas();}
+function selectItem(idx){if(isGuiding)stopGuide();currentIdx=idx;const item=currentQueue[idx];document.getElementById('bigChar').textContent=item.ch;document.getElementById('charSub1').textContent=item.sub1;document.getElementById('charSub2').textContent=item.sub2+(level==='advanced'?` · 第 ${idx+1} 題`:'');document.getElementById('ghostChar').textContent=item.ch;const dc=document.getElementById('charDots');dc.innerHTML='';if(lang==='num'&&level==='basic')for(let i=0;i<Math.min(parseInt(item.ch)||0,9);i++){const d=document.createElement('div');d.className='dot';dc.appendChild(d);}const sg=document.getElementById('strokeGuide');sg.innerHTML='';(item.strokes||[]).forEach((_,i)=>{const sd=document.createElement('div');sd.className='stroke-dot'+(i===0?' active-stroke':'');sd.textContent=i+1;sg.appendChild(sd);});document.querySelectorAll('.char-tab').forEach((t,i)=>t.classList.toggle('active',i===idx));clearCanvas();}
+function buildTabs(){const cont=document.getElementById('charTabs');cont.innerHTML='';currentQueue.forEach((d,i)=>{const btn=document.createElement('button');const done=isMastered(lang,d.ch);btn.className='char-tab'+(i===currentIdx?' active':'')+(done?' pass':'');btn.textContent=d.ch;btn.onclick=()=>selectItem(i);cont.appendChild(btn);});}
+function updateTabs(){document.querySelectorAll('.char-tab').forEach((t,i)=>{const done=isMastered(lang,currentQueue[i]?.ch);t.classList.remove('pass','fail');if(done)t.classList.add('pass');else if(results[i])t.classList.add(results[i].passed?'pass':'fail');t.classList.toggle('active',i===currentIdx);});}
+function buildRoundTrack(){const tr=document.getElementById('roundTrack');tr.innerHTML='';currentQueue.forEach((d,i)=>{const cell=document.createElement('div');cell.className='round-cell'+(i===currentIdx?' current':'');cell.onclick=()=>{if(!results[i])selectItem(i);};cell.innerHTML=`<div class="rc-num">${d.ch}</div><div class="rc-icon"></div>`;tr.appendChild(cell);});}
+function updateRoundUI(){const n=currentQueue.length,filled=results.filter(r=>r!==null).length,passed=results.filter(r=>r&&r.passed).length,rate=Math.round((passed/n)*100);document.getElementById('roundBadge').textContent=filled+' / '+n;document.getElementById('roundLabel').textContent=level==='advanced'?'進階（隨機10題）':'本輪進度';document.getElementById('roundFill').style.width=rate+'%';document.getElementById('roundFill').style.background=rate>=80?'linear-gradient(90deg,#66BB6A,#43A047)':rate>=50?'linear-gradient(90deg,#FFB74D,#FF7043)':'linear-gradient(90deg,#EF9A9A,#E53935)';document.getElementById('roundPct').textContent=rate+'%';document.getElementById('roundPct').style.color=rate>=80?'#2E7D32':rate>=50?'#E65100':'#B71C1C';document.querySelectorAll('.round-cell').forEach((cell,i)=>{cell.classList.remove('pass','fail','current');if(results[i]){cell.classList.add(results[i].passed?'pass':'fail');cell.querySelector('.rc-icon').textContent=results[i].passed?'✓':'△';}else if(i===currentIdx)cell.classList.add('current');});}
+
+function addGlobalStar(){const ids=['s1','s2','s3'];for(let i=0;i<3;i++){const el=document.getElementById(ids[i]);if(el.textContent==='☆'){el.textContent='⭐';return;}}}
+function fireBurst(){const emojis=['⭐','✨','🌟','💫','✨','🎉'];const burst=document.getElementById('starburst');burst.innerHTML='';burst.classList.add('show');for(let i=0;i<18;i++){const p=document.createElement('div');p.className='burst-particle';p.textContent=emojis[Math.floor(Math.random()*emojis.length)];const ang=(i/18)*Math.PI*2,dist=80+Math.random()*120;p.style.cssText=`left:50%;top:40%;--dx:${Math.cos(ang)*dist}px;--dy:${Math.sin(ang)*dist-70}px;animation-delay:${Math.random()*.3}s;animation-duration:${.8+Math.random()*.6}s;`;burst.appendChild(p);}setTimeout(()=>burst.classList.remove('show'),1500);}
+function confirmExit(){if(isGuiding)stopGuide();document.getElementById('confirmBg').classList.add('show');}
+function cancelExit(e){if(e&&e.target!==document.getElementById('confirmBg'))return;document.getElementById('confirmBg').classList.remove('show');}
+function doExit(){document.getElementById('confirmBg').classList.remove('show');document.body.style.opacity='0';document.body.style.transition='opacity .35s';setTimeout(()=>{document.body.style.opacity='1';goBasic();},350);}
+
+// ── 先載入儲存的掌握度，再初始化畫面 ──────────────────────────
+(function(){
+  // 同步讀取 localStorage，在畫面渲染前還原 mastery
+  try{
+    const _s=localStorage.getItem('ultraman_practice_state_num');
+    if(_s){
+      const _d=JSON.parse(_s);
+      if(_d.mastery){
+        if(_d.mastery.num) Object.keys(_d.mastery.num).forEach(k=>{if(mastery.num[k])Object.assign(mastery.num[k],_d.mastery.num[k]);});
+        if(_d.mastery.zh)  Object.keys(_d.mastery.zh).forEach(k=>{if(mastery.zh[k])Object.assign(mastery.zh[k],_d.mastery.zh[k]);});
+      }
+    }
+  }catch(e){}
+})();
+initCanvas();currentQueue=buildBasicQueue();results=Array(currentQueue.length).fill(null);
+updateLevelBanner();updateMasteryGrid();buildTabs();buildRoundTrack();selectItem(0);
+window.addEventListener('resize',()=>{initCanvas();if(isGuiding)stopGuide();});
+
+// ── SHARED STAR STATE (localStorage) ─────────────────────────────
+const _APP_KEY='ultraman_app_state';
+function _loadApp(){try{const s=localStorage.getItem(_APP_KEY);return s?JSON.parse(s):{}}catch(e){return {};}}
+function _saveApp(p){try{const c=_loadApp();localStorage.setItem(_APP_KEY,JSON.stringify(Object.assign({},c,p)));}catch(e){}}
+function _getStars(){return Math.min(3,parseInt(_loadApp().stars)||0);}
+function _setStars(n){
+  n=Math.max(0,Math.min(3,n));
+  _saveApp({stars:n});
+  _renderStarPips(n);
+  try{window.parent.postMessage({type:'starUpdate',stars:n},'*');}catch(e){}
+}
+function _renderStarPips(n){
+  ['s1','s2','s3'].forEach((id,i)=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.textContent=i<n?'⭐':'☆';
+    el.style.color=i<n?'#F9A825':'rgba(255,255,255,.5)';
+  });
+}
+function directAwardStar(){
+  const cur=_getStars();
+  if(cur>=3){_showStarMsg('已集滿 3 顆星！快去獎勵頁抽力霸王卡 🦸');return;}
+  _setStars(cur+1);
+  const n=_getStars();
+  _showStarMsg(n>=3?'⭐⭐⭐ 集滿啦！快去獎勵頁抽卡！':`獲得一顆星星！還差 ${3-n} 顆`);
+}
+function _showStarMsg(msg){
+  let t=document.getElementById('_starToast');
+  if(!t){
+    t=document.createElement('div');t.id='_starToast';
+    t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:rgba(10,36,114,.96);border:1.5px solid rgba(66,165,245,.4);border-radius:14px;padding:12px 22px;font-size:14px;font-weight:700;color:#fff;z-index:9998;transition:transform .4s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;box-shadow:0 6px 24px rgba(0,0,0,.5);';
+    document.body.appendChild(t);
+  }
+  t.textContent=msg;
+  t.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(t._t);t._t=setTimeout(()=>t.style.transform='translateX(-50%) translateY(100px)',3000);
+}
+window.addEventListener('load',()=>{_renderStarPips(_getStars());});
+
+// ── 練習進度儲存 ─────────────────────────────────────────────────
+const _PKEY='ultraman_practice_state_num';
+function _pLoad(){try{const s=localStorage.getItem(_PKEY);return s?JSON.parse(s):{};}catch(e){return {};}}
+function savePractice(){
+  try{
+    localStorage.setItem(_PKEY, JSON.stringify({mastery}));
+  }catch(e){}
+}
+function loadPractice(){
+  const s=_pLoad();
+  if(s.mastery){
+    if(s.mastery.num) Object.assign(mastery.num, s.mastery.num);
+    if(s.mastery.zh)  Object.assign(mastery.zh,  s.mastery.zh);
+  }
+}
+// Auto-save on hide/leave
+document.addEventListener('visibilitychange',function(){if(document.hidden)savePractice();});
+window.addEventListener('pagehide',savePractice);
+</script>
+</body>
+</html>
