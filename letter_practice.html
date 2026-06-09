@@ -792,6 +792,16 @@ function confirmExit(){if(isGuiding)stopGuide();document.getElementById('confirm
 function cancelExit(e){if(e&&e.target!==document.getElementById('confirmBg'))return;document.getElementById('confirmBg').classList.remove('show');}
 function doExit(){document.getElementById('confirmBg').classList.remove('show');document.body.style.opacity='0';document.body.style.transition='opacity .35s';setTimeout(()=>document.body.style.opacity='1',350);}
 
+// ── 先同步還原練習進度，再初始化畫面 ──────────────
+(function(){
+  try{
+    const _s=localStorage.getItem('ultraman_practice_state_let');
+    if(_s){const _d=JSON.parse(_s);if(_d.groupStats){const gs=_d.groupStats;
+      if(gs.upper&&Array.isArray(gs.upper))gs.upper.forEach((v,i)=>{if(groupStats.upper[i])Object.assign(groupStats.upper[i],v);});
+      if(gs.lower&&Array.isArray(gs.lower))gs.lower.forEach((v,i)=>{if(groupStats.lower[i])Object.assign(groupStats.lower[i],v);});
+    }}
+  }catch(e){}
+})();
 initCanvas();results=Array(GROUPS[0].letters.length).fill(null);
 rebuildGroupCards();buildLetterTabs();buildRoundTrack();selectItem(0);uLevelTabs();uUnlockTeaser();
 window.addEventListener('resize',()=>{initCanvas();if(isGuiding)stopGuide();});
@@ -832,7 +842,7 @@ function _showStarMsg(msg){
   t.style.transform='translateX(-50%) translateY(0)';
   clearTimeout(t._t);t._t=setTimeout(()=>t.style.transform='translateX(-50%) translateY(100px)',3000);
 }
-window.addEventListener('load',()=>{_renderStarPips(_getStars());loadPractice();});
+window.addEventListener('load',()=>{_renderStarPips(_getStars());});
 
 // ── 練習進度儲存 ─────────────────────────────────────────────────
 const _PKEY='ultraman_practice_state_let';

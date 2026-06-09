@@ -551,20 +551,36 @@ function syncStarUI(n){
   const bUm=document.getElementById('bUm');
   if(bUm)bUm.style.opacity=n>=3?'1':'0.35';
 }
-function saveCollection(){_save({umBook,moBook,umHand,moPend,umW});}
+function saveCollection(){
+  // Store only ids and counts (not full card objects)
+  const umSave={},moSave={};
+  Object.keys(umBook).forEach(id=>{umSave[id]={count:umBook[id].count||1};});
+  Object.keys(moBook).forEach(id=>{moSave[id]={t:moBook[id].data?moBook[id].data.t:null};});
+  _save({umBook:umSave,moBook:moSave,umHand,moPend,umW});
+}
 function loadCollection(){
   const s=_load();
-  // Restore umBook (all ultraman collected)
-  if(s.umBook && typeof s.umBook==='object') Object.assign(umBook,s.umBook);
-  // Restore moBook (all monster/alien collected)
-  if(s.moBook && typeof s.moBook==='object') Object.assign(moBook,s.moBook);
-  // Restore umHand (ultraman cards in hand)
-  if(s.umHand !== undefined && s.umHand !== null) umHand = parseInt(s.umHand)||0;
-  // Restore moPend - use Array.isArray check, allow empty array (all collected!)
-  if(Array.isArray(s.moPend)) moPend = s.moPend;
-  // Restore umW (draw probability weights - full replacement)
+  // Restore umBook - re-attach full card data from UM array
+  if(s.umBook && typeof s.umBook==='object'){
+    Object.keys(s.umBook).forEach(id=>{
+      const card=UM.find(u=>u.id===id);
+      if(card) umBook[id]={data:card, count:s.umBook[id].count||1};
+    });
+  }
+  // Restore moBook - re-attach full card data from EN array
+  if(s.moBook && typeof s.moBook==='object'){
+    Object.keys(s.moBook).forEach(id=>{
+      const card=EN.find(e=>e.id===id);
+      if(card) moBook[id]={data:card};
+    });
+  }
+  // Restore umHand
+  if(s.umHand !== undefined && s.umHand !== null) umHand=parseInt(s.umHand)||0;
+  // Restore moPend (allow empty array = all collected)
+  if(Array.isArray(s.moPend)) moPend=s.moPend;
+  // Restore umW
   if(s.umW && typeof s.umW==='object'){
-    Object.keys(umW).forEach(id=>{ if(s.umW[id]!==undefined) umW[id]=s.umW[id]; });
+    Object.keys(umW).forEach(id=>{if(s.umW[id]!==undefined)umW[id]=s.umW[id];});
   }
 }
 window.addEventListener('message',e=>{if(e.data&&e.data.type==='starUpdate')syncStarUI(e.data.stars||0);});
@@ -624,7 +640,7 @@ function rewardEarnStar(){
 let umHand=0,umBook={},moBook={};
 let umW={};UM.forEach(u=>umW[u.id]=1);
 let moPend=[...EN.map(e=>e.id)];
-let pType=null,pOpts=[],picked=null,pickIdx=null;
+let pType=null,pOpts=[],picked=null,pickIdx=null,pCovers=[],pickedCover=null;
 
 // ── CARD BUILDER ──────────────────────────────────────────────────
 function tc(c){return!c.t?'tum':c.t==='monster'?'tmo':'tal';}
@@ -718,10 +734,13 @@ function openPacks(type){
   // 洗牌5張卡包圖樣，每個位置固定一張不重複
   const _covers=(type==='um'?[...COVERS_UM]:[...COVERS_MA])
     .sort(()=>Math.random()-0.5);
+  pCovers=[];
   pOpts.forEach((card,i)=>{
     const cls=type==='um'?'um':(card.t==='monster'?'mo':'al');
+    const cover=_covers[i%_covers.length];
+    pCovers.push(cover);
     const wrap=document.createElement('div');wrap.className='pack-wrap '+cls;
-    const pb=buildPack(cls,_covers[i%_covers.length]);
+    const pb=buildPack(cls,cover);
     const lbl=document.createElement('div');lbl.className='pack-num-lbl';lbl.textContent=['①','②','③','④','⑤'][i];
     wrap.appendChild(pb);wrap.appendChild(lbl);wrap.onclick=()=>pickPack(i,wrap,card);row.appendChild(wrap);
   });
@@ -731,6 +750,7 @@ function openPacks(type){
 }
 function pickPack(idx,el,card){
   if(pickIdx!==null)return;pickIdx=idx;picked=card;
+  pickedCover=pCovers[idx]||randCover(pType==='um'?'um':'mo');
   document.querySelectorAll('.pack-wrap').forEach(p=>p.classList.remove('sel'));
   el.classList.add('sel');setTimeout(()=>doTear(card),500);
 }
@@ -738,7 +758,7 @@ function doTear(card){
   phase('tear');
   const cls=pType==='um'?'um':(card.t==='monster'?'mo':'al');
   const scene=document.getElementById('tearScene');scene.innerHTML='';
-  const cov=randCover(cls);
+  const cov=pickedCover||randCover(cls);
   scene.appendChild(buildTearHalf(cls,true,cov));scene.appendChild(buildTearHalf(cls,false,cov));
   const sparks=cls==='mo'?['🔴','💢','⚡','🌋']:cls==='al'?['🟢','👾','🌿','💚']:['✨','⭐','💫','🌟'];
   for(let i=0;i<12;i++){setTimeout(()=>{const s=document.createElement('div');s.className='spark';s.textContent=sparks[Math.floor(Math.random()*sparks.length)];const dx=(Math.random()-.5)*130,dy=-(Math.random()*110+20);s.style.cssText='left:'+(25+Math.random()*90)+'px;top:'+(10+Math.random()*50)+'px;--dx:'+dx+'px;--dy:'+dy+'px;animation-delay:'+(i*.05)+'s;';scene.appendChild(s);setTimeout(()=>s.remove(),1000);},i*45);}
