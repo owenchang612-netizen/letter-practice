@@ -368,6 +368,24 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
     </div>
 
     <div class="prog-card">
+      <div class="prog-card-icon">🇯🇵</div>
+      <div class="prog-card-info">
+        <div class="prog-card-name">日文五十音練習</div>
+        <div class="prog-card-desc">平假名 & 片假名，各10組</div>
+        <div class="prog-bar-bg"><div class="prog-bar-fill" id="jpnProgFill" style="width:0%;background:linear-gradient(90deg,#AB47BC,#6A1B9A)"></div></div>
+        <div class="prog-pct" id="jpnProgPct">尚未開始</div>
+        <div class="chips">
+          <div class="chip">あ行</div>
+          <div class="chip">か行</div>
+          <div class="chip">さ行</div>
+          <div class="chip">… 共10組</div>
+          <div class="chip">平假名</div>
+          <div class="chip">片假名</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prog-card">
       <div class="prog-card-icon">⭕</div>
       <div class="prog-card-info">
         <div class="prog-card-name">形狀描繪練習</div>
@@ -512,6 +530,9 @@ function showToast(msg){
 
 // Init
 updateStarDisplay();
+
+function updateJpnProgress(){try{const s=localStorage.getItem('ultraman_practice_state_jpn');if(!s)return;const d=JSON.parse(s);if(!d.progress)return;const all=[...(d.progress.hira||[]),...(d.progress.kata||[])];const passed=all.filter(p=>p&&p.pc>0).length;const pct=Math.round(passed/20*100);const f=document.getElementById('jpnProgFill');const p=document.getElementById('jpnProgPct');if(f)f.style.width=pct+'%';if(p)p.textContent=passed===0?'尚未開始':'已通過 '+passed+' / 20 組';}catch(e){}}
+setInterval(()=>{updateStarDisplay();updateJpnProgress();},1000);
 </script>
 </body>
 </html>
