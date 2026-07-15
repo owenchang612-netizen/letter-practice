@@ -150,6 +150,16 @@ canvas{display:block;width:100%;touch-action:none;}
   font-size:13px;font-weight:700;color:#fff;z-index:999;
   transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;}
 .toast.show{transform:translateX(-50%) translateY(0);}
+
+.sound-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 14px;border-radius:20px;border:none;cursor:pointer;
+  font-size:12px;font-weight:800;font-family:inherit;
+  background:linear-gradient(135deg,#29B6F6,#0288D1);
+  color:#fff;box-shadow:0 2px 8px rgba(2,136,209,.35);
+  transition:all .15s;margin-top:6px;
+}
+.sound-btn:active{transform:scale(.93);}
 </style>
 </head>
 <body>
@@ -182,6 +192,7 @@ canvas{display:block;width:100%;touch-action:none;}
   <div class="bopo-info">
     <div class="bopo-name" id="bopoName">ㄅ（b）</div>
     <div class="bopo-type" id="bopoType">聲母 · 第1組</div>
+    <button class="sound-btn" onclick="speakBopo()">🔊 發音</button>
   </div>
   <div class="bopo-btns">
     <button class="bopo-btn btn-trace" onclick="setDrawMode('trace')">✏️ 描摹</button>
@@ -634,6 +645,22 @@ buildGroupTabs();
 startGroup(0);
 window.addEventListener('resize',()=>initCanvas());
 window.addEventListener('load',()=>_renderPips(_getStars()));
+
+// ── 發音功能 (Web Speech API) ────────────────────────────────────
+function speakText(text, lang, rate){
+  if(!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=lang||'zh-TW';
+  u.rate=rate||0.8;
+  u.pitch=1.1;
+  window.speechSynthesis.speak(u);
+}
+function speakBopo(){
+  const c=cChar();
+  // Speak the bopomofo in Chinese (Taiwan)
+  speakText(c.b,'zh-TW',0.7);
+}
 </script>
 </body>
 </html>

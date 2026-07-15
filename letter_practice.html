@@ -286,6 +286,18 @@
   .burst-particle{position:absolute;font-size:20px;animation:burstFly 1.4s ease-out forwards;}
   @keyframes burstFly{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.2)}}
   @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+/* 發音按鍵 */
+.sound-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 14px;border-radius:20px;border:none;cursor:pointer;
+  font-size:12px;font-weight:800;font-family:inherit;
+  background:linear-gradient(135deg,#29B6F6,#0288D1);
+  color:#fff;box-shadow:0 2px 8px rgba(2,136,209,.35);
+  transition:all .15s;margin-top:6px;
+}
+.sound-btn:active{transform:scale(.93);}
+.sound-btn:hover{box-shadow:0 4px 12px rgba(2,136,209,.5);}
 </style>
 </head>
 <body>
@@ -367,6 +379,7 @@
           <div class="illus-word" id="illusWord"><span class="illus-word-highlight">A</span>pple</div>
           <div class="illus-zh" id="illusZh">蘋果</div>
           <div class="illus-phonics" id="illusPhonics">/ˈæp.əl/</div>
+          <button class="sound-btn" onclick="speakLetter()">🔊 發音</button>
         </div>
         <div class="mode-toggle">
           <button class="trace-btn active-mode" onclick="setTraceMode('trace')" id="btnTrace">✏️ 描摹</button>
@@ -866,6 +879,24 @@ function loadPractice(){
 // Auto-save on hide/leave
 document.addEventListener('visibilitychange',function(){if(document.hidden)savePractice();});
 window.addEventListener('pagehide',savePractice);
+
+// ── 發音功能 (Web Speech API) ────────────────────────────────────
+function speakText(text, lang, rate){
+  if(!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=lang||'en-US';
+  u.rate=rate||0.85;
+  u.pitch=1.1;
+  window.speechSynthesis.speak(u);
+}
+
+function speakLetter(){
+  const{L,disp}=cItem(),w=WORDS[L];
+  // Speak: letter name + word
+  const text=L+'. '+w.word;
+  speakText(text,'en-US',0.8);
+}
 </script>
 </body>
 </html>
