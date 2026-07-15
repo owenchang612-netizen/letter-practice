@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>注音符號練習</title>
+<style>
+:root{
+  --bg:#B3D8A3;--card:#FFFFFF;
+  --accent:#D84315;--accent2:#FF8A65;
+  --teal:#2ABFBF;--green:#43A047;--red:#E53935;--gold:#F9A825;
+  --tx:#1A2744;--txs:rgba(26,39,68,.55);--r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{font-family:'Noto Sans TC','Nunito',sans-serif;
+  background:var(--bg);color:var(--tx);min-height:100vh;overflow-y:auto;}
+.app{max-width:720px;margin:0 auto;display:flex;flex-direction:column;min-height:100vh;}
+
+/* TOP BAR */
+.topbar{display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:linear-gradient(135deg,#BF360C,#E64A19);
+  position:sticky;top:0;z-index:50;}
+.back-btn{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.2);
+  border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.topbar-title{font-size:15px;font-weight:900;color:#fff;flex:1;}
+.star-row{display:flex;gap:4px;}
+.sp{width:24px;height:24px;border-radius:50%;border:1.5px solid rgba(255,255,255,.4);
+  background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:13px;}
+.sp.on{background:rgba(249,168,37,.3);border-color:var(--gold);}
+
+/* GROUP TABS */
+.group-scroll{overflow-x:auto;padding:10px 14px;display:flex;gap:7px;-webkit-overflow-scrolling:touch;}
+.group-scroll::-webkit-scrollbar{display:none;}
+.group-tab{flex-shrink:0;height:36px;padding:0 16px;border-radius:20px;
+  border:1.5px solid rgba(255,255,255,.5);background:rgba(255,255,255,.35);
+  font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;color:var(--tx);transition:all .18s;}
+.group-tab.on{background:#fff;border-color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+.group-tab.mastered{border-color:var(--green);background:rgba(67,160,71,.15);color:var(--green);}
+.group-tab.mastered.on{background:rgba(67,160,71,.25);}
+
+/* STATS */
+.stats-row{display:flex;gap:8px;padding:0 14px 6px;}
+.stat-chip{flex:1;background:rgba(255,255,255,.6);border-radius:10px;padding:7px 10px;text-align:center;}
+.stat-n{font-size:20px;font-weight:900;color:var(--tx);}
+.stat-l{font-size:9px;color:var(--txs);font-weight:700;margin-top:1px;}
+
+/* BOPO CARD */
+.bopo-card{margin:0 14px 8px;background:#fff;border-radius:var(--r);
+  padding:14px 16px;display:flex;align-items:center;gap:14px;
+  box-shadow:0 2px 12px rgba(0,0,0,.1);}
+.bopo-main{font-size:64px;font-weight:900;line-height:1;min-width:80px;text-align:center;
+  color:var(--accent);font-family:'Noto Sans TC',sans-serif;}
+.bopo-info{flex:1;}
+.bopo-name{font-size:18px;font-weight:900;color:var(--accent);}
+.bopo-type{font-size:11px;color:var(--txs);font-weight:700;margin-top:3px;}
+.bopo-btns{display:flex;flex-direction:column;gap:7px;}
+.bopo-btn{height:38px;padding:0 16px;border-radius:10px;border:none;
+  font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s;
+  display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.bopo-btn:active{transform:scale(.96);}
+.btn-trace{background:linear-gradient(135deg,#E64A19,#BF360C);color:#fff;}
+.btn-free{background:rgba(230,74,25,.12);color:#BF360C;border:1.5px solid rgba(230,74,25,.3);}
+
+/* LETTER TABS */
+.letter-tabs{display:flex;gap:6px;padding:0 14px 8px;flex-wrap:wrap;}
+.lt{width:36px;height:36px;border-radius:50%;border:2px solid rgba(0,0,0,.12);
+  background:rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:900;cursor:pointer;transition:all .18s;color:var(--tx);}
+.lt.current{border-color:var(--accent);background:var(--accent);color:#fff;transform:scale(1.1);}
+.lt.passed{border-color:var(--green);background:rgba(67,160,71,.15);color:var(--green);}
+.lt.failed{border-color:var(--red);background:rgba(229,57,53,.1);color:var(--red);}
+
+/* CANVAS */
+.canvas-wrap{position:relative;margin:0 14px;border-radius:var(--r);overflow:hidden;
+  background:#FBE9E7;border:2px solid rgba(230,74,25,.2);}
+canvas{display:block;width:100%;touch-action:none;}
+#ghostCanvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+.round-header{display:flex;align-items:center;justify-content:space-between;
+  padding:5px 14px;font-size:11px;font-weight:800;color:var(--txs);}
+.round-num-badge{width:22px;height:22px;border-radius:50%;background:var(--accent);
+  color:#fff;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;}
+
+/* CONTROLS */
+.ctrl-row{display:flex;gap:8px;padding:8px 14px;}
+.ctrl-btn{flex:1;height:42px;border-radius:11px;border:1px solid rgba(0,0,0,.1);
+  font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;gap:5px;}
+.ctrl-btn:active{transform:scale(.97);}
+.btn-clear{background:#fff;color:var(--tx);}
+.btn-hint{background:rgba(255,193,7,.15);color:#F57F17;border-color:rgba(255,193,7,.3);}
+.btn-check{background:linear-gradient(135deg,#E64A19,#BF360C);color:#fff;border:none;flex:2;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:8px;padding:4px 14px 10px;}
+.prog-lbl{font-size:11px;font-weight:800;color:var(--txs);min-width:24px;}
+.prog-bar{flex:1;height:6px;background:rgba(0,0,0,.1);border-radius:6px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  transition:width .4s cubic-bezier(.34,1.56,.64,1);}
+.prog-pct{font-size:10px;font-weight:800;color:var(--accent);}
+
+/* MASTERY GRID */
+.mastery-wrap{margin:0 14px 12px;background:rgba(255,255,255,.6);border-radius:12px;padding:.75rem;}
+.mastery-title{font-size:11px;font-weight:800;color:var(--txs);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;}
+.mastery-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;}
+.mcell{border-radius:8px;padding:5px 2px;text-align:center;background:rgba(0,0,0,.04);}
+.mcell-char{font-size:18px;font-weight:900;color:var(--accent);}
+.mcell-bar{height:3px;border-radius:3px;background:rgba(0,0,0,.1);margin-top:3px;overflow:hidden;}
+.mcell-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;transition:width .4s;}
+
+/* SCORE MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;
+  display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+.modal-bg.show{display:flex;}
+.modal-box{background:#fff;border-radius:20px;padding:1.5rem 1.25rem;
+  width:min(400px,90vw);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.modal-title{font-size:22px;font-weight:900;margin-bottom:4px;}
+.modal-sub{font-size:12px;color:var(--txs);font-weight:700;margin-bottom:1.25rem;}
+.donut-wrap{position:relative;width:90px;height:90px;margin:0 auto 1rem;}
+.donut-wrap svg{width:90px;height:90px;}
+.donut-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:900;}
+.star-anim{font-size:48px;margin:.5rem 0;animation:starPop .5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes starPop{0%{transform:scale(0) rotate(-30deg);}70%{transform:scale(1.3);}100%{transform:scale(1);}}
+.tips-sec{text-align:left;margin:.75rem 0;background:rgba(0,0,0,.04);border-radius:12px;padding:.75rem;}
+.tips-title{font-size:12px;font-weight:800;margin-bottom:.5rem;color:var(--red);}
+.tip-item{display:flex;gap:8px;align-items:center;margin-bottom:4px;}
+.tip-char{font-size:22px;font-weight:900;color:var(--accent);}
+.tip-text{font-size:11px;color:var(--txs);font-weight:700;}
+.modal-btns{display:flex;gap:8px;margin-top:1rem;}
+.mbtn{flex:1;height:42px;border-radius:11px;border:none;font-size:13px;font-weight:800;
+  cursor:pointer;font-family:inherit;transition:all .15s;}
+.mbtn:active{transform:scale(.97);}
+.mbtn-main{background:linear-gradient(135deg,#E64A19,#BF360C);color:#fff;}
+.mbtn-sec{background:rgba(0,0,0,.08);color:var(--tx);}
+#starburst{position:fixed;inset:0;pointer-events:none;z-index:300;overflow:hidden;}
+.spark{position:absolute;font-size:20px;animation:spk .9s ease-out forwards;}
+@keyframes spk{0%{opacity:1;transform:scale(.3);}100%{opacity:0;transform:scale(1.8) translate(var(--dx),var(--dy));}}
+
+/* CONFIRM */
+.confirm-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;
+  display:none;align-items:center;justify-content:center;}
+.confirm-bg.show{display:flex;}
+.confirm-box{background:#fff;border-radius:16px;padding:1.5rem;width:min(320px,88vw);text-align:center;}
+.confirm-btns{display:flex;gap:8px;margin-top:1rem;}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:rgba(50,10,5,.95);border-radius:12px;padding:10px 20px;
+  font-size:13px;font-weight:700;color:#fff;z-index:999;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <button class="back-btn" onclick="confirmExit()">←</button>
+  <div class="topbar-title">ㄅ 注音符號練習</div>
+  <div class="star-row">
+    <div class="sp" id="s1">☆</div>
+    <div class="sp" id="s2">☆</div>
+    <div class="sp" id="s3">☆</div>
+  </div>
+</div>
+
+<!-- GROUP TABS -->
+<div class="group-scroll" id="groupScroll"></div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat-chip"><div class="stat-n" id="stRound">0</div><div class="stat-l">已練習次數</div></div>
+  <div class="stat-chip"><div class="stat-n" id="stPass">0</div><div class="stat-l">通過次數</div></div>
+  <div class="stat-chip"><div class="stat-n" id="stRate">0%</div><div class="stat-l">通過率</div></div>
+</div>
+
+<!-- BOPO CARD -->
+<div class="bopo-card">
+  <div class="bopo-main" id="bopoMain">ㄅ</div>
+  <div class="bopo-info">
+    <div class="bopo-name" id="bopoName">ㄅ（b）</div>
+    <div class="bopo-type" id="bopoType">聲母 · 第1組</div>
+  </div>
+  <div class="bopo-btns">
+    <button class="bopo-btn btn-trace" onclick="setDrawMode('trace')">✏️ 描摹</button>
+    <button class="bopo-btn btn-free" onclick="setDrawMode('free')">🖊️ 自由寫</button>
+  </div>
+</div>
+
+<!-- LETTER TABS -->
+<div class="letter-tabs" id="letterTabs"></div>
+
+<!-- ROUND HEADER -->
+<div class="round-header" id="roundHeader" style="visibility:hidden;">
+  <div style="display:flex;gap:6px;align-items:center;">
+    <div class="round-num-badge" id="roundNum">1</div>
+    <span id="roundInfo">第 1 題</span>
+  </div>
+  <div id="roundScore" style="color:var(--txs)">-</div>
+</div>
+
+<!-- CANVAS -->
+<div class="canvas-wrap" id="canvasWrap">
+  <canvas id="mainCanvas"></canvas>
+  <canvas id="ghostCanvas"></canvas>
+</div>
+
+<!-- CONTROLS -->
+<div class="ctrl-row">
+  <button class="ctrl-btn btn-clear" onclick="clearCanvas()">🗑️ 清除</button>
+  <button class="ctrl-btn btn-hint" onclick="showHint()">💡 提示</button>
+  <button class="ctrl-btn btn-check" id="btnCheck" onclick="submitCurrent()">✅ 提交</button>
+</div>
+
+<!-- PROGRESS -->
+<div class="prog-row">
+  <div class="prog-lbl" id="progLbl">這個字</div>
+  <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+  <div class="prog-pct" id="progPct">0%</div>
+</div>
+
+<!-- MASTERY GRID -->
+<div class="mastery-wrap">
+  <div class="mastery-title">各符號掌握度</div>
+  <div class="mastery-grid" id="masteryGrid"></div>
+</div>
+
+</div><!-- .app -->
+
+<!-- SCORE MODAL -->
+<div class="modal-bg" id="scoreModalBg">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">這組完成！</div>
+    <div class="modal-sub" id="modalSub"></div>
+    <div class="donut-wrap">
+      <svg viewBox="0 0 80 80">
+        <circle cx="40" cy="40" r="34" fill="none" stroke="#eee" stroke-width="8"/>
+        <circle id="donutFill" cx="40" cy="40" r="34" fill="none" stroke="#5CB85C" stroke-width="8"
+          stroke-dasharray="0 213" stroke-dashoffset="53" stroke-linecap="round"
+          style="transition:stroke-dasharray .8s ease"/>
+      </svg>
+      <div class="donut-pct">
+        <svg viewBox="0 0 80 20" width="80">
+          <text id="donutPct" x="40" y="15" text-anchor="middle" font-size="16" font-weight="900" fill="#2E7D32">0%</text>
+        </svg>
+      </div>
+    </div>
+    <div class="star-anim" id="starAnim" style="display:none">⭐</div>
+    <div class="tips-sec" id="tipsSec" style="display:none">
+      <div class="tips-title">💪 需要加強的符號</div>
+      <div id="tipsContent"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn mbtn-sec" onclick="startRetry()">🔄 重練</button>
+      <button class="mbtn mbtn-main" id="btnNext" onclick="goNext()">下一組 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM EXIT -->
+<div class="confirm-bg" id="confirmBg">
+  <div class="confirm-box">
+    <div style="font-size:16px;font-weight:900;margin-bottom:8px;">確定要離開嗎？</div>
+    <div style="font-size:12px;color:var(--txs);margin-bottom:1rem;">目前這組練習進度將會遺失</div>
+    <div class="confirm-btns">
+      <button class="mbtn mbtn-sec" onclick="cancelExit()">✏️ 繼續練習</button>
+      <button class="mbtn mbtn-main" onclick="doExit()">🚪 離開</button>
+    </div>
+  </div>
+</div>
+
+<div id="starburst"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── 注音符號資料（37個，每8個一組，共5組）────────────────────────
+const BOPOMOFO_GROUPS = [
+  {
+    id:'B1', label:'第1組', chars:[
+      {b:'ㄅ', name:'ㄅ（b）', type:'聲母'},
+      {b:'ㄆ', name:'ㄆ（p）', type:'聲母'},
+      {b:'ㄇ', name:'ㄇ（m）', type:'聲母'},
+      {b:'ㄈ', name:'ㄈ（f）', type:'聲母'},
+      {b:'ㄉ', name:'ㄉ（d）', type:'聲母'},
+      {b:'ㄊ', name:'ㄊ（t）', type:'聲母'},
+      {b:'ㄋ', name:'ㄋ（n）', type:'聲母'},
+      {b:'ㄌ', name:'ㄌ（l）', type:'聲母'},
+    ]
+  },
+  {
+    id:'B2', label:'第2組', chars:[
+      {b:'ㄍ', name:'ㄍ（g）', type:'聲母'},
+      {b:'ㄎ', name:'ㄎ（k）', type:'聲母'},
+      {b:'ㄏ', name:'ㄏ（h）', type:'聲母'},
+      {b:'ㄐ', name:'ㄐ（j）', type:'聲母'},
+      {b:'ㄑ', name:'ㄑ（q）', type:'聲母'},
+      {b:'ㄒ', name:'ㄒ（x）', type:'聲母'},
+      {b:'ㄓ', name:'ㄓ（zh）', type:'聲母'},
+      {b:'ㄔ', name:'ㄔ（ch）', type:'聲母'},
+    ]
+  },
+  {
+    id:'B3', label:'第3組', chars:[
+      {b:'ㄕ', name:'ㄕ（sh）', type:'聲母'},
+      {b:'ㄖ', name:'ㄖ（r）',  type:'聲母'},
+      {b:'ㄗ', name:'ㄗ（z）',  type:'聲母'},
+      {b:'ㄘ', name:'ㄘ（c）',  type:'聲母'},
+      {b:'ㄙ', name:'ㄙ（s）',  type:'聲母'},
+      {b:'ㄧ', name:'ㄧ（yi）', type:'韻母'},
+      {b:'ㄨ', name:'ㄨ（wu）', type:'韻母'},
+      {b:'ㄩ', name:'ㄩ（yu）', type:'韻母'},
+    ]
+  },
+  {
+    id:'B4', label:'第4組', chars:[
+      {b:'ㄚ', name:'ㄚ（a）',  type:'韻母'},
+      {b:'ㄛ', name:'ㄛ（o）',  type:'韻母'},
+      {b:'ㄜ', name:'ㄜ（e）',  type:'韻母'},
+      {b:'ㄝ', name:'ㄝ（ê）',  type:'韻母'},
+      {b:'ㄞ', name:'ㄞ（ai）', type:'韻母'},
+      {b:'ㄟ', name:'ㄟ（ei）', type:'韻母'},
+      {b:'ㄠ', name:'ㄠ（ao）', type:'韻母'},
+      {b:'ㄡ', name:'ㄡ（ou）', type:'韻母'},
+    ]
+  },
+  {
+    id:'B5', label:'第5組', chars:[
+      {b:'ㄢ', name:'ㄢ（an）',  type:'韻母'},
+      {b:'ㄣ', name:'ㄣ（en）',  type:'韻母'},
+      {b:'ㄤ', name:'ㄤ（ang）', type:'韻母'},
+      {b:'ㄥ', name:'ㄥ（eng）', type:'韻母'},
+      {b:'ㄦ', name:'ㄦ（er）',  type:'韻母'},
+    ]
+  },
+];
+
+// ── STATE ──────────────────────────────────────────────────────────
+let currentGrp=0, currentIdx=0;
+let drawMode='trace', isDrawing=false, totalStrokePts=0;
+let results=[], currentQueue=[];
+let progress=BOPOMOFO_GROUPS.map(()=>({rc:0,pc:0}));
+
+// ── CANVAS ────────────────────────────────────────────────────────
+const canvas=document.getElementById('mainCanvas');
+const ctx=canvas.getContext('2d');
+const gCanvas=document.getElementById('ghostCanvas');
+const gCtx=gCanvas.getContext('2d');
+
+function initCanvas(){
+  const w=canvas.parentElement.clientWidth||320;
+  const h=740;
+  [canvas,gCanvas].forEach(c=>{
+    c.width=w;c.height=h;
+    c.style.width=w+'px';c.style.height=h+'px';
+  });
+  drawGrid();drawGhost();
+}
+
+function drawGrid(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const W=canvas.width,H=canvas.height;
+  // vertical center
+  ctx.strokeStyle='rgba(216,67,21,.2)';ctx.lineWidth=1;ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(W/2,0);ctx.lineTo(W/2,H);ctx.stroke();
+  // horizontal center dashed
+  ctx.setLineDash([8,6]);ctx.strokeStyle='rgba(216,67,21,.25)';
+  ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function drawGhost(){
+  gCtx.clearRect(0,0,gCanvas.width,gCanvas.height);
+  const g=BOPOMOFO_GROUPS[currentGrp];
+  const ch=g.chars[currentIdx];
+  if(!ch)return;
+  const W=gCanvas.width,H=gCanvas.height;
+  const fs=Math.min(W,H)*0.62;
+  gCtx.font=`900 ${fs}px 'Noto Sans TC',sans-serif`;
+  gCtx.textAlign='center';gCtx.textBaseline='middle';
+  gCtx.fillStyle='rgba(216,67,21,.12)';
+  gCtx.fillText(ch.b,W/2,H/2);
+}
+
+// Touch/mouse
+function getPos(e,c){
+  const r=c.getBoundingClientRect();
+  const s=e.touches?e.touches[0]:e;
+  return{x:(s.clientX-r.left)*(c.width/r.width),y:(s.clientY-r.top)*(c.height/r.height)};
+}
+canvas.addEventListener('mousedown',e=>{isDrawing=true;const p=getPos(e,canvas);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.strokeStyle='#BF360C';ctx.lineWidth=6;ctx.lineCap='round';ctx.lineJoin='round';totalStrokePts++;});
+canvas.addEventListener('mousemove',e=>{if(!isDrawing)return;const p=getPos(e,canvas);ctx.lineTo(p.x,p.y);ctx.stroke();ctx.beginPath();ctx.moveTo(p.x,p.y);totalStrokePts++;updateProg();});
+canvas.addEventListener('mouseup',()=>{isDrawing=false;updateProg();});
+canvas.addEventListener('touchstart',e=>{e.preventDefault();isDrawing=true;const p=getPos(e,canvas);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.strokeStyle='#BF360C';ctx.lineWidth=6;ctx.lineCap='round';ctx.lineJoin='round';totalStrokePts++;},{passive:false});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!isDrawing)return;const p=getPos(e,canvas);ctx.lineTo(p.x,p.y);ctx.stroke();ctx.beginPath();ctx.moveTo(p.x,p.y);totalStrokePts++;updateProg();},{passive:false});
+canvas.addEventListener('touchend',()=>{isDrawing=false;updateProg();});
+
+function clearCanvas(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawGrid();totalStrokePts=0;updateProg();
+}
+function updateProg(){
+  const pct=Math.min(100,Math.round(totalStrokePts*1.5));
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progPct').textContent=pct+'%';
+}
+
+// ── UI ────────────────────────────────────────────────────────────
+function cGroup(){return BOPOMOFO_GROUPS[currentGrp];}
+function cChar(){return cGroup().chars[currentIdx]||{b:'?',name:'?',type:''};}
+
+function buildGroupTabs(){
+  const cont=document.getElementById('groupScroll');cont.innerHTML='';
+  BOPOMOFO_GROUPS.forEach((g,i)=>{
+    const p=progress[i];
+    const mastered=p.rc>=3&&(p.pc/p.rc)>=0.8;
+    const btn=document.createElement('button');
+    btn.className='group-tab'+(i===currentGrp?' on':'')+(mastered?' mastered':'');
+    btn.textContent=(mastered?'✓ ':'')+g.label;
+    btn.onclick=()=>{if(i===currentGrp)return;currentGrp=i;buildGroupTabs();startGroup(i);};
+    cont.appendChild(btn);
+  });
+}
+
+function startGroup(gi){
+  currentGrp=gi;currentIdx=0;totalStrokePts=0;
+  results=Array(cGroup().chars.length).fill(null);
+  clearCanvas();updateCard();buildLetterTabs();buildMasteryGrid();updateStats();
+  document.getElementById('roundHeader').style.visibility='hidden';
+  drawGhost();
+}
+
+function updateCard(){
+  const c=cChar(),g=cGroup();
+  document.getElementById('bopoMain').textContent=c.b;
+  document.getElementById('bopoName').textContent=c.name;
+  document.getElementById('bopoType').textContent=c.type+' · '+g.label;
+  document.getElementById('progLbl').textContent=c.b;
+  document.getElementById('progFill').style.width='0%';
+  document.getElementById('progPct').textContent='0%';
+  totalStrokePts=0;
+}
+
+function buildLetterTabs(){
+  const cont=document.getElementById('letterTabs');cont.innerHTML='';
+  cGroup().chars.forEach((c,i)=>{
+    const d=document.createElement('div');d.className='lt';
+    d.textContent=c.b;
+    if(i===currentIdx)d.classList.add('current');
+    if(results[i]!==null)d.classList.add(results[i].passed?'passed':'failed');
+    d.onclick=()=>{if(results[i]===null){currentIdx=i;updateCard();drawGhost();buildLetterTabs();}};
+    cont.appendChild(d);
+  });
+}
+
+function buildMasteryGrid(){
+  const grid=document.getElementById('masteryGrid');grid.innerHTML='';
+  const saved=_pLoad();
+  cGroup().chars.forEach(c=>{
+    const key='bopo_'+c.b;
+    const m=saved.mastery&&saved.mastery[key]?saved.mastery[key]:{rc:0,pc:0};
+    const rate=m.rc>0?Math.round(m.pc/m.rc*100):0;
+    const cell=document.createElement('div');cell.className='mcell';
+    cell.innerHTML=`<div class="mcell-char">${c.b}</div>
+      <div class="mcell-bar"><div class="mcell-fill" style="width:${rate}%"></div></div>`;
+    grid.appendChild(cell);
+  });
+}
+
+function updateStats(){
+  const p=progress[currentGrp];
+  document.getElementById('stRound').textContent=p.rc;
+  document.getElementById('stPass').textContent=p.pc;
+  document.getElementById('stRate').textContent=p.rc>0?Math.round(p.pc/p.rc*100)+'%':'0%';
+}
+
+function setDrawMode(m){drawMode=m;clearCanvas();drawGhost();}
+function showHint(){const c=cChar();toast('「'+c.b+'」的讀音是「'+c.name+'」');}
+
+// ── SUBMIT ────────────────────────────────────────────────────────
+function submitCurrent(){
+  if(totalStrokePts<3){
+    document.getElementById('btnCheck').style.background='linear-gradient(135deg,#E53935,#EF5350)';
+    setTimeout(()=>document.getElementById('btnCheck').style.background='',600);
+    return;
+  }
+  const q=Math.min(100,Math.round(totalStrokePts*1.5)),passed=q>=80;
+  results[currentIdx]={passed,quality:q};
+
+  // Update per-char mastery
+  const c=cChar(),key='bopo_'+c.b;
+  const saved=_pLoad();
+  if(!saved.mastery)saved.mastery={};
+  if(!saved.mastery[key])saved.mastery[key]={rc:0,pc:0};
+  saved.mastery[key].rc++;
+  if(passed)saved.mastery[key].pc++;
+  localStorage.setItem(_PKEY,JSON.stringify(saved));
+
+  document.getElementById('roundHeader').style.visibility='visible';
+  document.getElementById('roundNum').textContent=currentIdx+1;
+  document.getElementById('roundScore').textContent=passed?'✅ 通過':'❌ 再練';
+  buildLetterTabs();
+
+  const filled=results.filter(r=>r!==null).length;
+  if(filled>=results.length){setTimeout(showFinalModal,400);return;}
+  const next=results.findIndex((r,i)=>r===null&&i!==currentIdx);
+  if(next!==-1){currentIdx=next;clearCanvas();drawGhost();updateCard();}
+  else{setTimeout(showFinalModal,400);}
+}
+
+function showFinalModal(){
+  const n=results.length;
+  const passed=results.filter(r=>r&&r.passed).length;
+  const rate=Math.round(passed/n*100);
+  const star=rate>=80;
+
+  progress[currentGrp].rc++;
+  if(star)progress[currentGrp].pc++;
+  updateStats();savePractice();
+
+  const circ=2*Math.PI*34;
+  document.getElementById('donutFill').setAttribute('stroke-dasharray',`0 ${circ}`);
+  document.getElementById('donutFill').setAttribute('stroke',star?'#5CB85C':'#F0956B');
+  document.getElementById('donutPct').textContent=rate+'%';
+  document.getElementById('donutPct').style.fill=star?'#2E7D32':'#C9657F';
+  setTimeout(()=>document.getElementById('donutFill').setAttribute('stroke-dasharray',`${circ*rate/100} ${circ*(1-rate/100)}`),50);
+
+  document.getElementById('modalTitle').textContent=star?'🎉 完美過關！':'📝 繼續加油！';
+  document.getElementById('modalSub').textContent=`${n}個符號完成，通過${passed}個（${rate}%）`;
+
+  const sa=document.getElementById('starAnim');
+  if(star){sa.style.display='block';setTimeout(fireBurst,300);}
+  else{sa.style.display='none';}
+
+  const failChars=results.map((r,i)=>(!r||!r.passed)?cGroup().chars[i]:null).filter(Boolean);
+  const tipsSec=document.getElementById('tipsSec');
+  if(failChars.length>0){
+    tipsSec.style.display='block';
+    document.getElementById('tipsContent').innerHTML=
+      failChars.map(c=>`<div class="tip-item"><div class="tip-char">${c.b}</div><div class="tip-text">${c.name} — 需要再練習</div></div>`).join('');
+  } else {tipsSec.style.display='none';}
+
+  const nextGrp=currentGrp+1<BOPOMOFO_GROUPS.length;
+  document.getElementById('btnNext').textContent=nextGrp?'下一組 →':'再練一次 ▶';
+  document.getElementById('scoreModalBg').classList.add('show');
+
+  if(star)directAwardStar();
+  buildGroupTabs();
+}
+
+function goNext(){
+  document.getElementById('scoreModalBg').classList.remove('show');
+  const nextGrp=currentGrp+1<BOPOMOFO_GROUPS.length;
+  startGroup(nextGrp?currentGrp+1:currentGrp);
+}
+function startRetry(){
+  document.getElementById('scoreModalBg').classList.remove('show');
+  startGroup(currentGrp);
+}
+
+function fireBurst(){
+  const burst=document.getElementById('starburst');
+  const em=['⭐','✨','💫','🌟','🎉','🎊'];
+  for(let i=0;i<16;i++){
+    setTimeout(()=>{
+      const s=document.createElement('div');s.className='spark';
+      s.textContent=em[Math.floor(Math.random()*em.length)];
+      const dx=(Math.random()-.5)*300,dy=-(Math.random()*250+50);
+      s.style.cssText=`left:${30+Math.random()*40}%;top:40%;--dx:${dx}px;--dy:${dy}px;animation-delay:${i*.04}s;`;
+      burst.appendChild(s);setTimeout(()=>s.remove(),1000);
+    },i*40);
+  }
+}
+
+// ── EXIT ─────────────────────────────────────────────────────────
+function confirmExit(){document.getElementById('confirmBg').classList.add('show');}
+function cancelExit(){document.getElementById('confirmBg').classList.remove('show');}
+function doExit(){
+  document.getElementById('confirmBg').classList.remove('show');
+  document.body.style.opacity='0';document.body.style.transition='opacity .3s';
+  setTimeout(()=>{try{window.parent.postMessage({type:'closeModule'},'*');}catch(e){}},300);
+}
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ── SHARED STAR STATE ─────────────────────────────────────────────
+const _APP_KEY='ultraman_app_state';
+function _loadApp(){try{const s=localStorage.getItem(_APP_KEY);return s?JSON.parse(s):{}}catch(e){return {};}}
+function _saveApp(p){try{const c=_loadApp();localStorage.setItem(_APP_KEY,JSON.stringify(Object.assign({},c,p)));}catch(e){}}
+function _getStars(){return Math.min(3,parseInt(_loadApp().stars)||0);}
+function _setStars(n){
+  n=Math.max(0,Math.min(3,n));_saveApp({stars:n});_renderPips(n);
+  try{window.parent.postMessage({type:'starUpdate',stars:n},'*');}catch(e){}
+}
+function _renderPips(n){
+  ['s1','s2','s3'].forEach((id,i)=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.textContent=i<n?'⭐':'☆';el.classList.toggle('on',i<n);
+  });
+}
+function directAwardStar(){
+  const cur=_getStars();
+  if(cur>=3){toast('已集滿3顆星！快去獎勵頁抽卡 🦸');return;}
+  _setStars(cur+1);
+  const n=_getStars();
+  toast(n>=3?'⭐⭐⭐ 集滿啦！快去獎勵頁！':'獲得一顆星星！還差 '+(3-n)+' 顆');
+}
+
+// ── PERSISTENCE ───────────────────────────────────────────────────
+const _PKEY='ultraman_practice_state_bopo';
+function _pLoad(){try{const s=localStorage.getItem(_PKEY);return s?JSON.parse(s):{}}catch(e){return {};}}
+function savePractice(){
+  try{localStorage.setItem(_PKEY,JSON.stringify({progress}));}catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)savePractice();});
+window.addEventListener('pagehide',savePractice);
+
+// ── INIT ─────────────────────────────────────────────────────────
+(function(){
+  try{
+    const _s=localStorage.getItem(_PKEY);
+    if(_s){
+      const _d=JSON.parse(_s);
+      if(Array.isArray(_d.progress))
+        _d.progress.forEach((v,i)=>{if(progress[i])Object.assign(progress[i],v);});
+    }
+  }catch(e){}
+})();
+initCanvas();
+buildGroupTabs();
+startGroup(0);
+window.addEventListener('resize',()=>initCanvas());
+window.addEventListener('load',()=>_renderPips(_getStars()));
+</script>
+</body>
+</html>
